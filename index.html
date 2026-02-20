@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adaptive Capacity Self-Assessment</title>
+  <meta name="description" content="Assess your personal adaptive capacity for AI-driven labor market transitions, based on Manning &amp; Aguirre (2026), NBER Working Paper 34705.">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Loading overlay -->
+  <div id="loading-overlay" aria-live="polite">
+    <div class="spinner"></div>
+    <p>Loading assessment data...</p>
+  </div>
+
+  <!-- Section 1: Hero -->
+  <header id="hero" class="section">
+    <div class="container">
+      <h1>If AI dramatically changes your work tomorrow, how ready are you for what comes next?</h1>
+      <p class="hero-subtitle">AI is reshaping work. But not evenly, and not all at once. How exposed your job is depends on what you do. How well you can weather a change depends on who you are and what you've built.</p>
+      <div class="hero-actions">
+        <button id="btn-start" class="btn btn-primary">Assess your adaptive capacity</button>
+        <button id="btn-learn" class="btn btn-secondary">What is adaptive capacity?</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section 2: Concept Explainer -->
+  <section id="explainer" class="section" hidden>
+    <div class="container">
+      <h2>Understanding Adaptive Capacity</h2>
+      <div id="explainer-text">
+        <p>A 2026 study by Manning &amp; Aguirre examined how different occupations would fare in an AI-driven labor market transition. They found that exposure to AI varies dramatically by occupation &mdash; but that exposure alone doesn&rsquo;t determine outcomes.</p>
+        <p>What matters is <strong>adaptive capacity</strong>: a combination of financial resources, transferable skills, geographic labor market conditions, and career stage. Workers with high adaptive capacity can navigate transitions more effectively, even when their occupation faces significant AI exposure.</p>
+        <p>Researchers at Brookings measured the concept of &ldquo;adaptive capacity&rdquo; across 752 occupations. This unofficial tool asks: what is your adaptive capacity, specifically?</p>
+      </div>
+      <div class="chart-container">
+        <canvas id="chart-scatter"></canvas>
+      </div>
+      <p class="attribution">
+        Based on Manning &amp; Aguirre (2026),
+        <a href="https://www.nber.org/papers/w34705" target="_blank" rel="noopener">NBER Working Paper 34705</a>.
+        See also the
+        <a href="https://www.brookings.edu/articles/the-ai-job-transition-challenge/" target="_blank" rel="noopener">Brookings summary</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- Section 3: Self-Assessment Tool -->
+  <main>
+    <section id="assessment" class="section" hidden>
+      <div class="container">
+        <h2>Your Assessment</h2>
+
+        <!-- Privacy notice -->
+        <div class="notice" role="note">
+          <p><strong>Privacy first:</strong> All your data stays in your browser. Nothing is stored, sent, or tracked. Your financial information never leaves your device.</p>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4">
+          <div id="progress-fill" class="progress-fill" style="width: 25%"></div>
+        </div>
+        <p id="progress-label" class="progress-label">Step 1 of 4</p>
+
+        <!-- Step 1: Occupation Selection -->
+        <div id="step-occupation" class="step" data-step="1">
+          <h3>Step 1: What do you do?</h3>
+          <p>Your occupation determines your skill transferability and the density of your labor market. Select the occupation that most closely matches your current role.</p>
+
+          <!-- Tab toggle -->
+          <div class="tab-toggle" role="tablist" aria-label="Occupation selection method">
+            <button id="tab-quiz" class="tab active" role="tab" aria-selected="true" aria-controls="panel-quiz">Guided quiz</button>
+            <button id="tab-search" class="tab" role="tab" aria-selected="false" aria-controls="panel-search">Search by title</button>
+          </div>
+
+          <!-- Quiz panel -->
+          <div id="panel-quiz" class="tab-panel" role="tabpanel" aria-labelledby="tab-quiz">
+            <div id="quiz-q1" class="quiz-question"></div>
+            <div id="quiz-q2" class="quiz-question" hidden></div>
+            <div id="quiz-q3" class="quiz-question" hidden></div>
+            <div id="quiz-q4" class="quiz-question" hidden></div>
+            <div id="quiz-results" class="quiz-results" hidden></div>
+          </div>
+
+          <!-- Search panel -->
+          <div id="panel-search" class="tab-panel" role="tabpanel" aria-labelledby="tab-search" hidden>
+            <div class="search-wrapper">
+              <label for="search-input" class="sr-only">Search for your occupation</label>
+              <input id="search-input" type="text"
+                     placeholder="e.g., software developer, nurse, electrician..."
+                     autocomplete="off" aria-describedby="search-hint"
+                     role="combobox" aria-expanded="false" aria-controls="search-results">
+              <p id="search-hint" class="hint">Type at least 2 characters to search 752 occupations</p>
+              <ul id="search-results" class="search-list" role="listbox" hidden></ul>
+            </div>
+          </div>
+
+          <!-- Occupation context card -->
+          <div id="occupation-context" class="context-card" hidden></div>
+        </div>
+
+        <!-- Step 2: Financial Runway -->
+        <div id="step-financial" class="step" data-step="2" hidden>
+          <h3>Step 2: Financial runway</h3>
+          <p>If you lost your income tomorrow, how many months could you cover essential expenses from savings? This measures your financial buffer for navigating a career transition.</p>
+          <div class="input-group">
+            <label for="input-runway">Months of essential expenses covered</label>
+            <input id="input-runway" type="number" min="0" max="120" step="1"
+                   placeholder="e.g., 6" inputmode="numeric">
+            <p class="hint">Include cash, checking, savings, and accessible investments. Don&rsquo;t count retirement accounts (401k/IRA), home equity, or vehicle value.</p>
+          </div>
+          <div id="runway-indicator" class="indicator" hidden></div>
+        </div>
+
+        <!-- Step 3: Location -->
+        <div id="step-location" class="step" data-step="3" hidden>
+          <h3>Step 3: Where do you live?</h3>
+          <p>Your metro area&rsquo;s employment density affects how many alternative jobs are accessible to you. Denser labor markets provide more options during transitions.</p>
+          <div class="input-group">
+            <div class="search-wrapper">
+              <label for="input-metro">Metro area</label>
+              <input id="input-metro" type="text"
+                     placeholder="Start typing your city or metro area..."
+                     autocomplete="off" role="combobox" aria-expanded="false"
+                     aria-controls="metro-listbox">
+              <ul id="metro-listbox" class="search-list" role="listbox" hidden></ul>
+            </div>
+          </div>
+          <div id="location-context" class="context-card" hidden></div>
+        </div>
+
+        <!-- Step 4: Age -->
+        <div id="step-age" class="step" data-step="4" hidden>
+          <h3>Step 4: Your age</h3>
+          <p>Age shapes adaptive capacity through the time available to recoup investments in retraining or career pivots. Younger workers generally have more time to adapt, but experienced workers have other advantages.</p>
+          <div class="input-group">
+            <label for="input-age">Age</label>
+            <input id="input-age" type="number" min="16" max="85" step="1"
+                   placeholder="e.g., 35" inputmode="numeric">
+          </div>
+          <div id="age-context" class="context-card" hidden></div>
+        </div>
+
+        <!-- Step navigation -->
+        <div class="step-nav">
+          <button id="btn-prev" class="btn btn-secondary" hidden>Back</button>
+          <a id="btn-start-over" href="#" class="btn-link" hidden>Start over</a>
+          <div style="flex:1"></div>
+          <button id="btn-next" class="btn btn-primary" disabled>Continue</button>
+          <button id="btn-results" class="btn btn-primary" hidden>See your results</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Section 4: Results Dashboard -->
+  <section id="results" class="section" hidden>
+    <div class="container">
+      <h2>Your Adaptive Capacity Profile</h2>
+
+      <!-- Composite score headline -->
+      <div id="results-headline" class="results-card"></div>
+
+      <!-- Component breakdown -->
+      <div id="results-breakdown" class="results-card">
+        <h3>Component Breakdown</h3>
+        <div class="chart-container">
+          <canvas id="chart-components"></canvas>
+        </div>
+      </div>
+
+      <!-- Strongest / Weakest -->
+      <div id="results-callouts" class="results-card"></div>
+
+      <!-- Improvement roadmap -->
+      <div id="results-roadmap" class="results-card">
+        <h3>What You Can Do</h3>
+        <div id="roadmap-content"></div>
+      </div>
+
+      <!-- Growing neighbors -->
+      <div id="results-neighbors" class="results-card">
+        <h3>Growing Occupations with Similar Skills</h3>
+        <p class="hint">These occupations share similar skill profiles to yours and are projected to grow over 2024&ndash;2034. They represent potential transition paths if your current role is disrupted.</p>
+        <div id="neighbors-content"></div>
+      </div>
+
+      <!-- Restart -->
+      <div style="text-align: center;">
+        <button id="btn-restart" class="btn btn-secondary">Start over</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Footer -->
+  <footer id="footer" class="section">
+    <div class="container">
+      <h2>Context &amp; Caveats</h2>
+      <p>This tool is not a prediction of job loss, financial advice, or career counseling. It is a framework for thinking about readiness for labor market transitions, based on peer-reviewed research.</p>
+      <p><strong>Limitations:</strong> The study uses occupation-level averages; individual circumstances vary. The composite score combines occupation-level data with self-reported inputs using simplified assumptions about wealth and age distributions. Skill transferability is measured by O*NET skill profile similarity, which may not capture all relevant factors.</p>
+      <p>
+        <strong>Research:</strong>
+        Manning &amp; Aguirre (2026),
+        <a href="https://www.nber.org/papers/w34705" target="_blank" rel="noopener">"Who Bears the Costs of AI Displacement?"</a>
+        NBER Working Paper 34705.
+        AI exposure scores from
+        <a href="https://doi.org/10.1126/science.adj0998" target="_blank" rel="noopener">Eloundou et al. (2024)</a>,
+        <em>Science</em> 384(6702).
+      </p>
+      <p class="copyright">
+        Data: O*NET 30.1, BLS Employment Projections 2024&ndash;2034, BLS OEWS May 2024, Census CBSA Gazetteer 2024.
+        Built as a research translation project. Your data never leaves your browser.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Chart.js from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
