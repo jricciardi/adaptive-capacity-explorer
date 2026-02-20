@@ -946,11 +946,11 @@
                 text: 'AI Exposure Index',
                 font: { weight: 'bold', size: 13 }
               },
-              min: 0,
-              max: 0.9,
+              min: -0.04,
+              max: 0.90,
               ticks: {
-                callback: function (v) { return v.toFixed(2); },
-                stepSize: 0.1
+                callback: function (v) { return v >= 0 ? v.toFixed(2) : ''; },
+                stepSize: 0.10
               }
             },
             y: {
@@ -959,10 +959,10 @@
                 text: 'Adaptive Capacity Index',
                 font: { weight: 'bold', size: 13 }
               },
-              min: 0,
+              min: -0.04,
               max: 1.0,
               ticks: {
-                callback: function (v) { return v.toFixed(1); },
+                callback: function (v) { return v >= 0 ? v.toFixed(1) : ''; },
                 stepSize: 0.2
               }
             }
@@ -1085,6 +1085,7 @@
     },
 
     // Custom plugin: persistent occupation labels on notable bubbles
+    // Uses white halo stroke to lift labels above the data layer
     _occupationLabelsPlugin: {
       id: 'occupationLabels',
       afterDatasetsDraw: function (chart) {
@@ -1094,31 +1095,46 @@
         var rightThreshold = area.left + (area.right - area.left) * 0.72;
 
         ctx.save();
-        ctx.font = '10px system-ui, sans-serif';
-        ctx.fillStyle = '#1f2937';
+        ctx.font = '600 11px system-ui, sans-serif';
         ctx.textBaseline = 'bottom';
 
+        // Collect label positions first
+        var labels = [];
         chart.data.datasets.forEach(function (dataset, di) {
           var meta = chart.getDatasetMeta(di);
           dataset.data.forEach(function (point, pi) {
             if (!point.soc || labeled.indexOf(point.soc) === -1) return;
             var el = meta.data[pi];
             if (!el) return;
-            var x = el.x;
-            var y = el.y;
-            var radius = point.r || 4;
             var title = point.title || '';
             if (title.length > 35) title = title.substring(0, 33) + '\u2026';
-
-            // Position label to the left of bubble when near right edge
-            if (x > rightThreshold) {
-              ctx.textAlign = 'right';
-              ctx.fillText(title, x - radius - 3, y - 2);
+            var radius = point.r || 4;
+            var textX, align;
+            if (el.x > rightThreshold) {
+              align = 'right';
+              textX = el.x - radius - 4;
             } else {
-              ctx.textAlign = 'left';
-              ctx.fillText(title, x + radius + 3, y - 2);
+              align = 'left';
+              textX = el.x + radius + 4;
             }
+            labels.push({ text: title, x: textX, y: el.y - 3, align: align });
           });
+        });
+
+        // Pass 1: white halo (stroke behind text)
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.lineWidth = 3;
+        ctx.lineJoin = 'round';
+        labels.forEach(function (lbl) {
+          ctx.textAlign = lbl.align;
+          ctx.strokeText(lbl.text, lbl.x, lbl.y);
+        });
+
+        // Pass 2: dark fill on top
+        ctx.fillStyle = '#1f2937';
+        labels.forEach(function (lbl) {
+          ctx.textAlign = lbl.align;
+          ctx.fillText(lbl.text, lbl.x, lbl.y);
         });
 
         ctx.restore();
