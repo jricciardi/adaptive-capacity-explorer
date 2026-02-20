@@ -1,5 +1,7 @@
 # Adaptive Capacity Self-Assessment Tool
 
+**[Try it live](https://jricciardi.github.io/adaptive-capacity-explorer/)**
+
 A browser-based tool that helps workers understand how prepared they are for AI-driven labor market transitions, based on peer-reviewed economics research.
 
 ## What this is
