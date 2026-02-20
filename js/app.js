@@ -75,6 +75,36 @@
   // Pre-compute wealth scale
   CONFIG.wealth.scale = Math.log(6 + 1) - Math.log(CONFIG.wealth.medianMonths + 1);
 
+  // Scatter plot configuration — vulnerability tiers match Brookings visualization
+  const SCATTER_CONFIG = {
+    tiers: [
+      { name: 'Lowest vulnerability (<0.1)',  max: 0.1, bg: 'rgba(189, 210, 245, 0.55)', border: 'rgba(160, 190, 235, 0.8)' },
+      { name: 'Low vulnerability (0.1 – 0.3)', max: 0.3, bg: 'rgba(75, 130, 210, 0.45)',  border: 'rgba(60, 115, 200, 0.75)' },
+      { name: 'High vulnerability (0.3 – 0.6)', max: 0.6, bg: 'rgba(215, 90, 90, 0.5)',    border: 'rgba(200, 70, 70, 0.8)' },
+      { name: 'Highest vulnerability (>0.6)',   max: 1.0, bg: 'rgba(130, 25, 25, 0.6)',    border: 'rgba(110, 20, 20, 0.85)' }
+    ],
+    highlight: { bg: 'rgba(251, 191, 36, 0.9)', border: '#f59e0b' },
+    medianX: 0.323,
+    medianY: 0.7035,
+    labeledOccupations: [
+      '43-4051',  // Customer service representatives
+      '15-1252',  // Software developers
+      '41-2011',  // Cashiers
+      '43-6014',  // Secretaries and admin assistants
+      '43-5071',  // Shipping, receiving, and inventory clerks
+      '43-4171',  // Receptionists and information clerks
+      '43-9061',  // Office clerks, general
+      '11-2021',  // Marketing managers
+      '23-1011',  // Lawyers
+      '29-1021',  // Dentists, general
+      '29-1141',  // Registered nurses
+      '41-2031',  // Retail salespersons
+      '35-3023',  // Fast food and counter workers
+      '53-3032',  // Heavy and tractor-trailer truck drivers
+      '43-3031'   // Bookkeeping, accounting, and auditing clerks
+    ]
+  };
+
   /* --------------------------------------------------------
      STATE
      -------------------------------------------------------- */
@@ -135,6 +165,7 @@
     btnNext:        $('#btn-next'),
     btnResults:     $('#btn-results'),
     btnRestart:     $('#btn-restart'),
+    btnCopyResults: $('#btn-copy-results'),
     btnStartOver:   $('#btn-start-over'),
 
     progressFill:   $('#progress-fill'),
@@ -833,65 +864,114 @@
       if (!DOM.chartScatter) return;
 
       var occs = state.benchmarks.occupations;
-      var data = [];
+      var tiers = SCATTER_CONFIG.tiers;
+
+      // Build one array per vulnerability tier
+      var tierData = tiers.map(function () { return []; });
+
       Object.keys(occs).forEach(function (soc) {
         var o = occs[soc];
-        if (o.ai_exposure != null && o.composite_score != null) {
-          data.push({
-            x: o.ai_exposure * 100,
-            y: o.composite_score,
-            r: Math.min(15, Math.max(2, Math.sqrt(o.employment_2024) * 0.5)),
-            soc: soc,
-            title: o.title,
-            employment: o.employment_2024,
-            aiExposure: o.ai_exposure
-          });
+        if (o.ai_exposure == null || o.composite_score == null) return;
+
+        var xVal = o.ai_exposure;                    // 0-1
+        var yVal = o.composite_score / 100;          // normalize to 0-1
+        var vulnerability = Math.sqrt((1 - yVal) * xVal);
+        var r = Math.min(20, Math.max(2.5, Math.sqrt(o.employment_2024) * 0.32));
+
+        var point = {
+          x: xVal,
+          y: yVal,
+          r: r,
+          soc: soc,
+          title: o.title,
+          employment: o.employment_2024,
+          vulnerability: vulnerability
+        };
+
+        // Assign to the first tier whose max exceeds the vulnerability
+        for (var i = 0; i < tiers.length; i++) {
+          if (vulnerability < tiers[i].max || i === tiers.length - 1) {
+            tierData[i].push(point);
+            break;
+          }
         }
+      });
+
+      // Build one dataset per tier
+      var datasets = tiers.map(function (tier, i) {
+        return {
+          label: tier.name,
+          data: tierData[i],
+          backgroundColor: tier.bg,
+          borderColor: tier.border,
+          borderWidth: 1
+        };
       });
 
       var ctx = DOM.chartScatter.getContext('2d');
       state.charts.scatter = new Chart(ctx, {
         type: 'bubble',
-        data: {
-          datasets: [{
-            label: 'Occupations',
-            data: data,
-            backgroundColor: 'rgba(26, 86, 219, 0.15)',
-            borderColor: 'rgba(26, 86, 219, 0.4)',
-            borderWidth: 1
-          }]
-        },
+        data: { datasets: datasets },
         options: {
           responsive: true,
           maintainAspectRatio: true,
-          aspectRatio: 1.8,  // Fix 1: wider aspect ratio
+          aspectRatio: 1.5,
+          layout: {
+            padding: { bottom: 18, right: 45 }
+          },
           plugins: {
             legend: { display: false },
             tooltip: {
               callbacks: {
-                label: function (tooltipItem) {
-                  var d = tooltipItem.raw;
-                  return d.title + ' — AI exposure: ' + (d.aiExposure * 100).toFixed(0) + '%, Adaptive capacity: ' + d.y.toFixed(0) + 'th pctl';
+                title: function (items) {
+                  if (!items.length) return '';
+                  return items[0].raw.title || '';
+                },
+                label: function (item) {
+                  var d = item.raw;
+                  return [
+                    'AI Exposure: ' + d.x.toFixed(2),
+                    'Adaptive Capacity: ' + d.y.toFixed(2),
+                    'Vulnerability: ' + d.vulnerability.toFixed(2),
+                    'Employment: ' + (d.employment >= 1000 ? (d.employment / 1000).toFixed(1) + 'M' : Math.round(d.employment) + 'K')
+                  ];
                 }
               }
             }
           },
           scales: {
             x: {
-              title: { display: true, text: 'AI Exposure Score (%)' },
+              title: {
+                display: true,
+                text: 'AI Exposure Index',
+                font: { weight: 'bold', size: 13 }
+              },
               min: 0,
-              max: 100
+              max: 0.9,
+              ticks: {
+                callback: function (v) { return v.toFixed(2); },
+                stepSize: 0.1
+              }
             },
             y: {
-              title: { display: true, text: 'Adaptive Capacity (percentile)' },
+              title: {
+                display: true,
+                text: 'Adaptive Capacity Index',
+                font: { weight: 'bold', size: 13 }
+              },
               min: 0,
-              max: 100
+              max: 1.0,
+              ticks: {
+                callback: function (v) { return v.toFixed(1); },
+                stepSize: 0.2
+              }
             }
           }
-        }
+        },
+        plugins: [this._medianLinesPlugin, this._occupationLabelsPlugin]
       });
 
-      // Fix 8: If occupation already selected, highlight it now
+      // If occupation already selected, highlight it now
       if (state.selectedOccupation) {
         this.highlightOccupation(state.selectedOccupation);
       }
@@ -902,10 +982,11 @@
 
       var chart = state.charts.scatter;
       var datasets = chart.data.datasets;
+      var tierCount = SCATTER_CONFIG.tiers.length; // 4
 
-      // Remove previous highlight
-      if (datasets.length > 1) {
-        datasets.splice(1, 1);
+      // Remove any highlight dataset (anything beyond the 4 tier datasets)
+      while (datasets.length > tierCount) {
+        datasets.pop();
       }
 
       if (!soc) {
@@ -922,13 +1003,13 @@
       datasets.push({
         label: 'Your occupation',
         data: [{
-          x: occ.ai_exposure * 100,
-          y: occ.composite_score,
-          r: 8
+          x: occ.ai_exposure,
+          y: occ.composite_score / 100,
+          r: 10
         }],
-        backgroundColor: 'rgba(220, 38, 38, 0.8)',
-        borderColor: '#dc2626',
-        borderWidth: 2
+        backgroundColor: SCATTER_CONFIG.highlight.bg,
+        borderColor: SCATTER_CONFIG.highlight.border,
+        borderWidth: 3
       });
 
       chart.update();
@@ -954,6 +1035,93 @@
             ctx.restore();
           });
         });
+      }
+    },
+
+    // Custom plugin: dashed median lines creating quadrant structure
+    _medianLinesPlugin: {
+      id: 'medianLines',
+      beforeDatasetsDraw: function (chart) {
+        var ctx = chart.ctx;
+        var xScale = chart.scales.x;
+        var yScale = chart.scales.y;
+        var xPixel = xScale.getPixelForValue(SCATTER_CONFIG.medianX);
+        var yPixel = yScale.getPixelForValue(SCATTER_CONFIG.medianY);
+        var area = chart.chartArea;
+
+        ctx.save();
+        ctx.strokeStyle = '#7b9cc7';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([6, 4]);
+
+        // Vertical median line (AI Exposure)
+        ctx.beginPath();
+        ctx.moveTo(xPixel, area.top);
+        ctx.lineTo(xPixel, area.bottom);
+        ctx.stroke();
+
+        // Horizontal median line (Adaptive Capacity)
+        ctx.beginPath();
+        ctx.moveTo(area.left, yPixel);
+        ctx.lineTo(area.right, yPixel);
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+
+        // "Median" label on x-axis
+        ctx.font = '11px system-ui, sans-serif';
+        ctx.fillStyle = '#6b7280';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('Median', xPixel, area.bottom + 4);
+
+        // "Median" label on y-axis
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Median', area.right + 2, yPixel);
+
+        ctx.restore();
+      }
+    },
+
+    // Custom plugin: persistent occupation labels on notable bubbles
+    _occupationLabelsPlugin: {
+      id: 'occupationLabels',
+      afterDatasetsDraw: function (chart) {
+        var labeled = SCATTER_CONFIG.labeledOccupations;
+        var ctx = chart.ctx;
+        var area = chart.chartArea;
+        var rightThreshold = area.left + (area.right - area.left) * 0.72;
+
+        ctx.save();
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.fillStyle = '#1f2937';
+        ctx.textBaseline = 'bottom';
+
+        chart.data.datasets.forEach(function (dataset, di) {
+          var meta = chart.getDatasetMeta(di);
+          dataset.data.forEach(function (point, pi) {
+            if (!point.soc || labeled.indexOf(point.soc) === -1) return;
+            var el = meta.data[pi];
+            if (!el) return;
+            var x = el.x;
+            var y = el.y;
+            var radius = point.r || 4;
+            var title = point.title || '';
+            if (title.length > 35) title = title.substring(0, 33) + '\u2026';
+
+            // Position label to the left of bubble when near right edge
+            if (x > rightThreshold) {
+              ctx.textAlign = 'right';
+              ctx.fillText(title, x - radius - 3, y - 2);
+            } else {
+              ctx.textAlign = 'left';
+              ctx.fillText(title, x + radius + 3, y - 2);
+            }
+          });
+        });
+
+        ctx.restore();
       }
     },
 
@@ -1031,6 +1199,68 @@
       });
     }
   };
+
+  /* --------------------------------------------------------
+     CLIPBOARD TEXT BUILDER
+     -------------------------------------------------------- */
+  function buildResultsText() {
+    var r = state.results;
+    var occ = r.occupation;
+    var pct = Math.round(r.compositePercentile);
+    var tier = getScoreTier(pct);
+    var lines = [];
+
+    lines.push('Adaptive Capacity Profile');
+    lines.push('\u2500'.repeat(25));
+    lines.push('Occupation: ' + occ.title);
+    lines.push('Composite Score: ' + ordinal(pct) + ' percentile (' + tier.label + ')');
+
+    if (occ.composite_score != null) {
+      lines.push('Occupation Benchmark: ' + ordinal(Math.round(occ.composite_score)) + ' percentile');
+    }
+
+    lines.push('');
+    lines.push('Components:');
+
+    var componentOrder = ['transferability', 'density', 'wealth', 'age'];
+    var available = [];
+    componentOrder.forEach(function (key) {
+      var c = r.components[key];
+      if (key === 'density' && !c.available) return;
+      lines.push('  ' + c.label + ': ' + ordinal(Math.round(c.percentile)) + ' percentile');
+      available.push({ key: key, label: c.label, percentile: c.percentile });
+    });
+
+    available.sort(function (a, b) { return b.percentile - a.percentile; });
+    var strongest = available[0];
+    var weakest = available[available.length - 1];
+
+    lines.push('');
+    lines.push('Strongest: ' + strongest.label + ' (' + ordinal(Math.round(strongest.percentile)) + ' percentile)');
+    lines.push('Weakest: ' + weakest.label + ' (' + ordinal(Math.round(weakest.percentile)) + ' percentile)');
+
+    if (occ.ai_exposure != null) {
+      var expPct = Math.round(occ.ai_exposure * 100);
+      var level = expPct >= 70 ? 'high' : expPct >= 40 ? 'moderate' : 'lower';
+      lines.push('');
+      lines.push('AI Exposure: ' + expPct + '% (' + level + ' \u2014 ' + ordinal(Math.round(occ.ai_exposure_percentile)) + ' percentile)');
+    }
+
+    var neighbors = occ.growing_neighbors;
+    if (neighbors && neighbors.length > 0) {
+      lines.push('');
+      lines.push('Growing Occupations with Similar Skills:');
+      neighbors.forEach(function (n) {
+        lines.push('  \u2022 ' + n.title + ' (similarity ' + (n.similarity * 100).toFixed(0) + '%, growth ' + formatGrowth(n.growth_rate) + ')');
+      });
+    }
+
+    lines.push('');
+    lines.push('Generated by the Adaptive Capacity Explorer');
+    lines.push('https://jricciardi.github.io/adaptive-capacity-explorer/');
+
+    return lines.join('\n');
+  }
 
   /* --------------------------------------------------------
      RESULTS RENDERER
@@ -1406,6 +1636,24 @@
 
       DOM.btnResults.addEventListener('click', function () {
         UI.showResults();
+      });
+
+      // Copy results to clipboard
+      DOM.btnCopyResults.addEventListener('click', function () {
+        var text = buildResultsText();
+        navigator.clipboard.writeText(text).then(function () {
+          DOM.btnCopyResults.textContent = 'Copied!';
+          DOM.btnCopyResults.classList.add('copied');
+          setTimeout(function () {
+            DOM.btnCopyResults.textContent = 'Copy results';
+            DOM.btnCopyResults.classList.remove('copied');
+          }, 2000);
+        }).catch(function () {
+          DOM.btnCopyResults.textContent = 'Could not copy';
+          setTimeout(function () {
+            DOM.btnCopyResults.textContent = 'Copy results';
+          }, 2000);
+        });
       });
 
       // Restart — both from results and from step nav

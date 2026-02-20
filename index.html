@@ -36,15 +36,40 @@
         <p>What matters is <strong>adaptive capacity</strong>: a combination of financial resources, transferable skills, geographic labor market conditions, and career stage. Workers with high adaptive capacity can navigate transitions more effectively, even when their occupation faces significant AI exposure.</p>
         <p>Researchers at Brookings measured the concept of &ldquo;adaptive capacity&rdquo; across 752 occupations. This unofficial tool asks: what is your adaptive capacity, specifically?</p>
       </div>
-      <div class="chart-container">
-        <canvas id="chart-scatter"></canvas>
+      <div class="scatter-wrapper">
+        <h3 class="scatter-title">Relationship between AI exposure and adaptive capacity across occupations</h3>
+        <div class="scatter-legends">
+          <div class="scatter-legend-color">
+            <span class="scatter-swatch" style="background: rgba(189, 210, 245, 0.8);"></span>
+            <span class="scatter-legend-label">Lowest vulnerability (&lt;0.1)</span>
+            <span class="scatter-swatch" style="background: rgba(75, 130, 210, 0.7);"></span>
+            <span class="scatter-legend-label">Low vulnerability (0.1 &ndash; 0.3)</span>
+            <span class="scatter-swatch" style="background: rgba(215, 90, 90, 0.75);"></span>
+            <span class="scatter-legend-label">High vulnerability (0.3 &ndash; 0.6)</span>
+            <span class="scatter-swatch" style="background: rgba(130, 25, 25, 0.8);"></span>
+            <span class="scatter-legend-label">Highest vulnerability (&gt;0.6)</span>
+          </div>
+          <div class="scatter-legend-size">
+            <span class="scatter-legend-label"><strong>Total Employment</strong></span>
+            <span class="scatter-size-circle scatter-size-sm"></span>
+            <span class="scatter-legend-label">400K</span>
+            <span class="scatter-size-circle scatter-size-md"></span>
+            <span class="scatter-legend-label">1.5M</span>
+            <span class="scatter-size-circle scatter-size-lg"></span>
+            <span class="scatter-legend-label">4M</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="chart-scatter"></canvas>
+        </div>
+        <p class="scatter-note">
+          <strong>Source:</strong> Manning and Aguirre (2026),
+          <a href="https://www.nber.org/papers/w34705" target="_blank" rel="noopener">NBER Working Paper 34705</a>.
+          See also the
+          <a href="https://www.brookings.edu/articles/the-ai-job-transition-challenge/" target="_blank" rel="noopener">Brookings summary</a>.<br>
+          <strong>Note:</strong> Vulnerability is defined as &radic;[(1 &minus; Adaptive Capacity) &times; AI Exposure]; darker shading indicates higher vulnerability or higher exposure combined with low adaptive capacity.
+        </p>
       </div>
-      <p class="attribution">
-        Based on Manning &amp; Aguirre (2026),
-        <a href="https://www.nber.org/papers/w34705" target="_blank" rel="noopener">NBER Working Paper 34705</a>.
-        See also the
-        <a href="https://www.brookings.edu/articles/the-ai-job-transition-challenge/" target="_blank" rel="noopener">Brookings summary</a>.
-      </p>
     </div>
   </section>
 
@@ -188,8 +213,9 @@
         <div id="neighbors-content"></div>
       </div>
 
-      <!-- Restart -->
+      <!-- Actions -->
       <div style="text-align: center;">
+        <button id="btn-copy-results" class="btn btn-secondary">Copy results</button>
         <button id="btn-restart" class="btn btn-secondary">Start over</button>
       </div>
     </div>
