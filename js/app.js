@@ -91,8 +91,6 @@
       '15-1252',  // Software developers
       '41-2011',  // Cashiers
       '43-6014',  // Secretaries and admin assistants
-      '43-5071',  // Shipping, receiving, and inventory clerks
-      '43-4171',  // Receptionists and information clerks
       '43-9061',  // Office clerks, general
       '11-2021',  // Marketing managers
       '23-1011',  // Lawyers
@@ -100,8 +98,7 @@
       '29-1141',  // Registered nurses
       '41-2031',  // Retail salespersons
       '35-3023',  // Fast food and counter workers
-      '53-3032',  // Heavy and tractor-trailer truck drivers
-      '43-3031'   // Bookkeeping, accounting, and auditing clerks
+      '53-3032'   // Heavy and tractor-trailer truck drivers
     ]
   };
 
@@ -166,6 +163,7 @@
     btnResults:     $('#btn-results'),
     btnRestart:     $('#btn-restart'),
     btnCopyResults: $('#btn-copy-results'),
+    btnCopyUrl:     $('#btn-copy-url'),
     btnStartOver:   $('#btn-start-over'),
 
     progressFill:   $('#progress-fill'),
@@ -946,10 +944,10 @@
                 text: 'AI Exposure Index',
                 font: { weight: 'bold', size: 13 }
               },
-              min: -0.04,
-              max: 0.90,
+              min: -0.08,
+              max: 1.0,
               ticks: {
-                callback: function (v) { return v >= 0 ? v.toFixed(2) : ''; },
+                callback: function (v) { return v >= 0 && v <= 0.9 ? v.toFixed(2) : ''; },
                 stepSize: 0.10
               }
             },
@@ -959,10 +957,10 @@
                 text: 'Adaptive Capacity Index',
                 font: { weight: 'bold', size: 13 }
               },
-              min: -0.04,
-              max: 1.0,
+              min: -0.06,
+              max: 1.08,
               ticks: {
-                callback: function (v) { return v >= 0 ? v.toFixed(1) : ''; },
+                callback: function (v) { return v >= 0 && v <= 1.0 ? v.toFixed(1) : ''; },
                 stepSize: 0.2
               }
             }
@@ -1107,7 +1105,7 @@
             var el = meta.data[pi];
             if (!el) return;
             var title = point.title || '';
-            if (title.length > 35) title = title.substring(0, 33) + '\u2026';
+            if (title.length > 25) title = title.substring(0, 23) + '\u2026';
             var radius = point.r || 4;
             var textX, align;
             if (el.x > rightThreshold) {
@@ -1668,6 +1666,24 @@
           DOM.btnCopyResults.textContent = 'Could not copy';
           setTimeout(function () {
             DOM.btnCopyResults.textContent = 'Copy results';
+          }, 2000);
+        });
+      });
+
+      // Copy tool URL to clipboard
+      DOM.btnCopyUrl.addEventListener('click', function () {
+        var url = 'https://jricciardi.github.io/adaptive-capacity-explorer/';
+        navigator.clipboard.writeText(url).then(function () {
+          DOM.btnCopyUrl.textContent = 'Link copied!';
+          DOM.btnCopyUrl.classList.add('copied');
+          setTimeout(function () {
+            DOM.btnCopyUrl.textContent = 'Copy link to this tool';
+            DOM.btnCopyUrl.classList.remove('copied');
+          }, 2000);
+        }).catch(function () {
+          DOM.btnCopyUrl.textContent = 'Could not copy';
+          setTimeout(function () {
+            DOM.btnCopyUrl.textContent = 'Copy link to this tool';
           }, 2000);
         });
       });
