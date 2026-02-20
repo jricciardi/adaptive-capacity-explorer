@@ -220,6 +220,51 @@
       <!-- Composite score headline -->
       <div id="results-headline" class="results-card"></div>
 
+      <!-- What-If exploration panel -->
+      <div id="results-whatif" class="results-card whatif-card" hidden>
+        <button id="whatif-toggle" class="whatif-toggle" aria-expanded="false" aria-controls="whatif-body">
+          <span class="whatif-toggle-icon">&#x25B6;</span>
+          Explore: What if my situation were different?
+        </button>
+        <div id="whatif-body" class="whatif-body" hidden>
+          <p class="hint">Adjust the sliders and metro to see how changes affect your score. Skill transferability is fixed by your occupation.</p>
+          <p id="whatif-method-note" class="whatif-method-note" hidden>Note: Changing the metro area uses overall metro employment density as an approximation. The study methodology uses an occupation-weighted density measure that cannot be recalculated per-metro in the browser. Treat metro changes as directional estimates, not precise scores.</p>
+
+          <div class="whatif-controls">
+            <div class="whatif-slider-group">
+              <label for="whatif-runway">Financial runway</label>
+              <div class="whatif-slider-row">
+                <input id="whatif-runway" type="range" min="0" max="24" step="1" class="whatif-range">
+                <span id="whatif-runway-label" class="whatif-value-label"></span>
+              </div>
+              <span id="whatif-runway-pct" class="whatif-pct-label"></span>
+            </div>
+
+            <div class="whatif-slider-group">
+              <label for="whatif-age">Age</label>
+              <div class="whatif-slider-row">
+                <input id="whatif-age" type="range" min="16" max="70" step="1" class="whatif-range">
+                <span id="whatif-age-label" class="whatif-value-label"></span>
+              </div>
+              <span id="whatif-age-pct" class="whatif-pct-label"></span>
+            </div>
+
+            <div class="whatif-slider-group">
+              <label for="whatif-metro">Metro area</label>
+              <div class="whatif-metro-wrap">
+                <input id="whatif-metro" type="text" class="input" autocomplete="off"
+                       role="combobox" aria-expanded="false" aria-controls="whatif-metro-listbox"
+                       placeholder="Type to search metros...">
+                <ul id="whatif-metro-listbox" class="search-results whatif-metro-results" role="listbox" hidden></ul>
+              </div>
+              <span id="whatif-metro-pct" class="whatif-pct-label"></span>
+            </div>
+          </div>
+
+          <a href="#" id="whatif-reset" class="btn-link" hidden>Reset to my actual values</a>
+        </div>
+      </div>
+
       <!-- Component breakdown -->
       <div id="results-breakdown" class="results-card">
         <h3>Component Breakdown</h3>

@@ -140,6 +140,19 @@
     charts: {
       scatter: null,
       components: null
+    },
+
+    // What-If exploration
+    whatIf: {
+      originalRunway: null,
+      originalAge: null,
+      originalMetro: null,
+      currentRunway: null,
+      currentAge: null,
+      currentMetro: null,
+      originalResults: null,
+      rafPending: false,
+      bound: false
     }
   };
 
@@ -207,6 +220,22 @@
     // Age
     inputAge:       $('#input-age'),
     ageContext:      $('#age-context'),
+
+    // What-If
+    whatifCard:          $('#results-whatif'),
+    whatifToggle:        $('#whatif-toggle'),
+    whatifBody:          $('#whatif-body'),
+    whatifRunway:        $('#whatif-runway'),
+    whatifRunwayLabel:   $('#whatif-runway-label'),
+    whatifRunwayPct:     $('#whatif-runway-pct'),
+    whatifAge:           $('#whatif-age'),
+    whatifAgeLabel:      $('#whatif-age-label'),
+    whatifAgePct:        $('#whatif-age-pct'),
+    whatifMetro:         $('#whatif-metro'),
+    whatifMetroListbox:  $('#whatif-metro-listbox'),
+    whatifMetroPct:      $('#whatif-metro-pct'),
+    whatifMethodNote:    $('#whatif-method-note'),
+    whatifReset:         $('#whatif-reset'),
 
     // Results
     resultsHeadline:  $('#results-headline'),
@@ -323,6 +352,14 @@
         });
         // Sort by employment descending (most likely selections first)
         state.cbsaArray.sort(function (a, b) { return b.employment - a.employment; });
+
+        // Extract density distribution parameters for What-If metro recomputation
+        if (benchmarks.metadata && benchmarks.metadata.weighted_means) {
+          CONFIG.density = {
+            mean: benchmarks.metadata.weighted_means.density,
+            std:  benchmarks.metadata.weighted_stds.density
+          };
+        }
 
       } catch (err) {
         throw err;
@@ -1282,6 +1319,7 @@
   const ResultsRenderer = {
     render(results) {
       this._renderHeadline(results);
+      WhatIfPanel.init(results);
       Charts.createComponentBars(results);
       this._renderCallouts(results);
       this._renderRoadmap(results);
@@ -1474,6 +1512,290 @@
       html += '</div>';
 
       DOM.neighborsContent.innerHTML = html;
+    }
+  };
+
+  /* --------------------------------------------------------
+     WHAT-IF EXPLORATION PANEL
+     -------------------------------------------------------- */
+  const WhatIfPanel = {
+
+    init(results) {
+      var wif = state.whatIf;
+      var cappedRunway = Math.min(state.financialRunway, 24);
+      var cappedAge = Math.min(state.age, 70);
+      wif.originalRunway = cappedRunway;
+      wif.originalAge = cappedAge;
+      wif.originalMetro = state.selectedMetro;
+      wif.currentRunway = cappedRunway;
+      wif.currentAge = cappedAge;
+      wif.currentMetro = state.selectedMetro;
+      wif.originalResults = results;
+
+      // Set slider values
+      DOM.whatifRunway.value = cappedRunway;
+      DOM.whatifAge.value = cappedAge;
+
+      // Set metro input — fall back to CBSA lookup if name not stored
+      var metroName = state.selectedMetroName;
+      if (!metroName && state.selectedMetro && state.density.cbsa_lookup[state.selectedMetro]) {
+        metroName = state.density.cbsa_lookup[state.selectedMetro].name;
+      }
+      DOM.whatifMetro.value = metroName || '';
+
+      // Set labels
+      this._updateRunwayLabel(cappedRunway, results.components.wealth.percentile);
+      this._updateAgeLabel(cappedAge, results.components.age.percentile);
+      this._updateMetroLabel(results.components.density);
+
+      // Show card collapsed
+      DOM.whatifCard.hidden = false;
+      DOM.whatifBody.hidden = true;
+      DOM.whatifToggle.setAttribute('aria-expanded', 'false');
+      DOM.whatifToggle.querySelector('.whatif-toggle-icon').textContent = '\u25B6';
+      DOM.whatifReset.hidden = true;
+
+      // Bind events once
+      if (!wif.bound) {
+        this._bindEvents();
+        wif.bound = true;
+      }
+    },
+
+    _bindEvents() {
+      var self = this;
+
+      // Toggle expand/collapse
+      DOM.whatifToggle.addEventListener('click', function () {
+        var isExpanded = !DOM.whatifBody.hidden;
+        DOM.whatifBody.hidden = isExpanded;
+        DOM.whatifToggle.setAttribute('aria-expanded', String(!isExpanded));
+        DOM.whatifToggle.querySelector('.whatif-toggle-icon').textContent = isExpanded ? '\u25B6' : '\u25BC';
+      });
+
+      // Runway slider
+      DOM.whatifRunway.addEventListener('input', function () {
+        state.whatIf.currentRunway = parseInt(DOM.whatifRunway.value, 10);
+        self._scheduleUpdate();
+      });
+
+      // Age slider
+      DOM.whatifAge.addEventListener('input', function () {
+        state.whatIf.currentAge = parseInt(DOM.whatifAge.value, 10);
+        self._scheduleUpdate();
+      });
+
+      // Metro typeahead
+      DOM.whatifMetro.addEventListener('input', debounce(function () {
+        var query = DOM.whatifMetro.value.trim();
+        if (query.length < CONFIG.search.minChars) {
+          DOM.whatifMetroListbox.hidden = true;
+          DOM.whatifMetro.setAttribute('aria-expanded', 'false');
+          return;
+        }
+        var results = MetroSelector.search(query);
+        self._renderMetroResults(results, query);
+      }, 150));
+
+      // Close metro listbox on outside click
+      document.addEventListener('click', function (e) {
+        if (!DOM.whatifMetro.contains(e.target) && !DOM.whatifMetroListbox.contains(e.target)) {
+          DOM.whatifMetroListbox.hidden = true;
+          DOM.whatifMetro.setAttribute('aria-expanded', 'false');
+        }
+      });
+
+      // Reset link
+      DOM.whatifReset.addEventListener('click', function (e) {
+        e.preventDefault();
+        var wif = state.whatIf;
+        wif.currentRunway = wif.originalRunway;
+        wif.currentAge = wif.originalAge;
+        wif.currentMetro = wif.originalMetro;
+        DOM.whatifRunway.value = wif.originalRunway;
+        DOM.whatifAge.value = wif.originalAge;
+        var cbsa = state.density.cbsa_lookup[wif.originalMetro];
+        DOM.whatifMetro.value = cbsa ? cbsa.name : '';
+        self._scheduleUpdate();
+      });
+    },
+
+    _renderMetroResults(results, query) {
+      if (results.length === 0) {
+        DOM.whatifMetroListbox.innerHTML = '<li class="no-results">No metro areas found</li>';
+        DOM.whatifMetroListbox.hidden = false;
+        DOM.whatifMetro.setAttribute('aria-expanded', 'true');
+        return;
+      }
+
+      var q = query.toLowerCase();
+      var self = this;
+      var html = '';
+      results.forEach(function (item) {
+        var name = item.name;
+        var lower = name.toLowerCase();
+        var idx = lower.indexOf(q);
+        var display;
+        if (idx >= 0) {
+          display = escapeHtml(name.substring(0, idx)) +
+                    '<strong>' + escapeHtml(name.substring(idx, idx + query.length)) + '</strong>' +
+                    escapeHtml(name.substring(idx + query.length));
+        } else {
+          display = escapeHtml(name);
+        }
+        html += '<li class="search-item" role="option" data-code="' + item.code + '">' + display + '</li>';
+      });
+
+      DOM.whatifMetroListbox.innerHTML = html;
+      DOM.whatifMetroListbox.hidden = false;
+      DOM.whatifMetro.setAttribute('aria-expanded', 'true');
+
+      DOM.whatifMetroListbox.querySelectorAll('.search-item').forEach(function (li) {
+        li.addEventListener('click', function () {
+          var code = li.dataset.code;
+          var cbsa = state.density.cbsa_lookup[code];
+          if (!cbsa) return;
+          state.whatIf.currentMetro = code;
+          DOM.whatifMetro.value = cbsa.name;
+          DOM.whatifMetroListbox.hidden = true;
+          DOM.whatifMetro.setAttribute('aria-expanded', 'false');
+          self._scheduleUpdate();
+        });
+      });
+    },
+
+    _scheduleUpdate() {
+      if (state.whatIf.rafPending) return;
+      state.whatIf.rafPending = true;
+      var self = this;
+      requestAnimationFrame(function () {
+        state.whatIf.rafPending = false;
+        self._performUpdate();
+      });
+    },
+
+    _performUpdate() {
+      var wif = state.whatIf;
+      var months = wif.currentRunway;
+      var age = wif.currentAge;
+      var metro = wif.currentMetro;
+      var newResults = this._recompute(months, age, metro);
+
+      // Update labels
+      this._updateRunwayLabel(months, newResults.components.wealth.percentile);
+      this._updateAgeLabel(age, newResults.components.age.percentile);
+      this._updateMetroLabel(newResults.components.density);
+
+      // Show/hide reset
+      var changed = (months !== wif.originalRunway ||
+                     age !== wif.originalAge ||
+                     metro !== wif.originalMetro);
+      DOM.whatifReset.hidden = !changed;
+
+      // Show methodology note when metro differs from original
+      DOM.whatifMethodNote.hidden = (metro === wif.originalMetro);
+
+      // Update results display (not neighbors, not state.results)
+      ResultsRenderer._renderHeadline(newResults);
+
+      // Inject delta indicator inside score-context, before the occupation title
+      var newPct = Math.round(newResults.compositePercentile);
+      var origPct = Math.round(wif.originalResults.compositePercentile);
+      var diff = newPct - origPct;
+      if (diff !== 0) {
+        var deltaEl = document.createElement('div');
+        deltaEl.className = 'whatif-delta';
+        var sign = diff > 0 ? '+' : '';
+        deltaEl.textContent = sign + diff + ' from your actual score';
+        var scoreContext = DOM.resultsHeadline.querySelector('.score-context');
+        if (scoreContext) scoreContext.insertBefore(deltaEl, scoreContext.firstChild);
+      }
+
+      Charts.createComponentBars(newResults);
+      ResultsRenderer._renderCallouts(newResults);
+      ResultsRenderer._renderRoadmap(newResults);
+    },
+
+    _recompute(months, age, metroCode) {
+      var soc = state.selectedOccupation;
+      var occ = state.benchmarks.occupations[soc];
+      var wif = state.whatIf;
+
+      // Transferability: always from occupation benchmarks
+      var transferZ = occ.transferability_z;
+
+      // Density: use occupation-level if metro unchanged, metro-level if changed
+      var densityZ = null;
+      var densityAvailable = occ.density_available;
+      if (metroCode && metroCode !== wif.originalMetro && CONFIG.density) {
+        var cbsa = state.density.cbsa_lookup[metroCode];
+        if (cbsa) {
+          densityZ = (cbsa.log_density - CONFIG.density.mean) / CONFIG.density.std;
+          densityZ = clamp(densityZ, -CONFIG.zCap, CONFIG.zCap);
+          densityAvailable = true;
+        }
+      } else {
+        densityZ = occ.density_available ? occ.density_z : null;
+      }
+
+      // Wealth Z
+      var wealthZ = (Math.log(months + 1) - Math.log(CONFIG.wealth.medianMonths + 1)) / CONFIG.wealth.scale;
+      wealthZ = clamp(wealthZ, -CONFIG.zCap, CONFIG.zCap);
+
+      // Age Z
+      var ageZ = (CONFIG.ageCalc.center - age) / CONFIG.ageCalc.scale;
+      ageZ = clamp(ageZ, -CONFIG.zCap, CONFIG.zCap);
+
+      // Composite
+      var components = [transferZ, wealthZ, ageZ];
+      if (densityZ !== null) components.push(densityZ);
+      var compositeZ = components.reduce(function (a, b) { return a + b; }, 0) / components.length;
+      var compositePercentile = normalCDF(compositeZ) * 100;
+
+      return {
+        soc: soc,
+        occupation: occ,
+        compositeZ: compositeZ,
+        compositePercentile: compositePercentile,
+        components: {
+          transferability: { z: transferZ, percentile: normalCDF(transferZ) * 100, label: 'Skill transferability' },
+          density:         { z: densityZ, percentile: densityZ !== null ? normalCDF(densityZ) * 100 : null, label: 'Geographic density', available: densityAvailable },
+          wealth:          { z: wealthZ, percentile: normalCDF(wealthZ) * 100, label: 'Financial runway' },
+          age:             { z: ageZ, percentile: normalCDF(ageZ) * 100, label: 'Age factor' }
+        },
+        occupationComposite: occ.composite_score
+      };
+    },
+
+    _updateRunwayLabel(months, pctile) {
+      DOM.whatifRunwayLabel.textContent = months >= 24 ? '24+ mo' : months + ' mo';
+      DOM.whatifRunwayPct.textContent = ordinal(Math.round(pctile)) + ' percentile';
+    },
+
+    _updateAgeLabel(age, pctile) {
+      DOM.whatifAgeLabel.textContent = age >= 70 ? '70+ yrs' : age + ' yrs';
+      DOM.whatifAgePct.textContent = ordinal(Math.round(pctile)) + ' percentile';
+    },
+
+    _updateMetroLabel(densityComp) {
+      if (densityComp.available && densityComp.percentile != null) {
+        DOM.whatifMetroPct.textContent = ordinal(Math.round(densityComp.percentile)) + ' percentile';
+      } else {
+        DOM.whatifMetroPct.textContent = 'Not available for this occupation';
+      }
+    },
+
+    destroy() {
+      state.whatIf.originalRunway = null;
+      state.whatIf.originalAge = null;
+      state.whatIf.originalMetro = null;
+      state.whatIf.currentRunway = null;
+      state.whatIf.currentAge = null;
+      state.whatIf.currentMetro = null;
+      state.whatIf.originalResults = null;
+      state.whatIf.rafPending = false;
+      DOM.whatifCard.hidden = true;
+      DOM.whatifBody.hidden = true;
     }
   };
 
@@ -1828,6 +2150,9 @@
     },
 
     restart() {
+      // Clean up What-If panel
+      WhatIfPanel.destroy();
+
       // Reset state
       state.selectedOccupation = null;
       state.financialRunway = null;
