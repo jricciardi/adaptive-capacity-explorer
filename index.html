@@ -95,6 +95,13 @@
           <h3>Step 1: What do you do?</h3>
           <p>Your occupation determines your skill transferability and the density of your labor market. Select the occupation that most closely matches your current role.</p>
 
+          <div class="dimension-hint">
+            <button class="dimension-hint-toggle" aria-expanded="false">Why does this matter?</button>
+            <div class="dimension-hint-body" hidden>
+              <p>Your occupation determines two things: how easily your skills transfer to other growing fields, and how many employers in your area hire people like you. Both shape how quickly you could land on your feet.</p>
+            </div>
+          </div>
+
           <!-- Tab toggle -->
           <div class="tab-toggle" role="tablist" aria-label="Occupation selection method">
             <button id="tab-quiz" class="tab active" role="tab" aria-selected="true" aria-controls="panel-quiz">Guided quiz</button>
@@ -131,6 +138,14 @@
         <div id="step-financial" class="step" data-step="2" hidden>
           <h3>Step 2: Financial runway</h3>
           <p>If you lost your income tomorrow, how many months could you cover essential expenses from savings? This measures your financial buffer for navigating a career transition.</p>
+
+          <div class="dimension-hint">
+            <button class="dimension-hint-toggle" aria-expanded="false">Why does this matter?</button>
+            <div class="dimension-hint-body" hidden>
+              <p>Financial runway measures how long you could search for a good-fit role rather than taking the first available offer. More runway means more leverage to find work that actually uses your strengths.</p>
+            </div>
+          </div>
+
           <div class="input-group">
             <label for="input-runway">Months of essential expenses covered</label>
             <input id="input-runway" type="number" min="0" max="120" step="1"
@@ -144,6 +159,14 @@
         <div id="step-location" class="step" data-step="3" hidden>
           <h3>Step 3: Where do you live?</h3>
           <p>Your metro area&rsquo;s employment density affects how many alternative jobs are accessible to you. Denser labor markets provide more options during transitions.</p>
+
+          <div class="dimension-hint">
+            <button class="dimension-hint-toggle" aria-expanded="false">Why does this matter?</button>
+            <div class="dimension-hint-body" hidden>
+              <p>Denser labor markets mean more employers competing for workers with your skills. If your current role disappears, a thicker market gives you more places to land without relocating.</p>
+            </div>
+          </div>
+
           <div class="input-group">
             <div class="search-wrapper">
               <label for="input-metro">Metro area</label>
@@ -161,6 +184,14 @@
         <div id="step-age" class="step" data-step="4" hidden>
           <h3>Step 4: Your age</h3>
           <p>Age shapes adaptive capacity through the time available to recoup investments in retraining or career pivots. Younger workers generally have more time to adapt, but experienced workers have other advantages.</p>
+
+          <div class="dimension-hint">
+            <button class="dimension-hint-toggle" aria-expanded="false">Why does this matter?</button>
+            <div class="dimension-hint-body" hidden>
+              <p>Age reflects the time horizon for recouping investments in retraining or a career pivot. Younger workers have more years to benefit; experienced workers often have networks and savings that compensate.</p>
+            </div>
+          </div>
+
           <div class="input-group">
             <label for="input-age">Age</label>
             <input id="input-age" type="number" min="16" max="85" step="1"

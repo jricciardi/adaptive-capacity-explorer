@@ -1540,6 +1540,17 @@
         }
       });
 
+      // Dimension hint toggles (delegated)
+      DOM.assessment.addEventListener('click', function (e) {
+        var toggle = e.target.closest('.dimension-hint-toggle');
+        if (!toggle) return;
+        var body = toggle.nextElementSibling;
+        if (!body) return;
+        var isExpanded = !body.hidden;
+        body.hidden = isExpanded;
+        toggle.setAttribute('aria-expanded', String(!isExpanded));
+      });
+
       // Search input
       var debouncedSearch = debounce(function () {
         var q = DOM.searchInput.value.trim();
