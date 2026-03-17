@@ -5,29 +5,39 @@
 
 /* ---- Custom Properties ---- */
 :root {
-  /* Primary palette */
-  --color-primary: #1a56db;
-  --color-primary-dark: #1240a8;
-  --color-primary-light: #e8eefb;
-  --color-primary-bg: #f0f5ff;
+  /* Primary palette — indigo, warm studio feel */
+  --color-primary: #4f46e5;
+  --color-primary-dark: #4338ca;
+  --color-primary-light: #e0e7ff;
+  --color-primary-bg: #eef2ff;
 
   /* Semantic colors */
   --color-success: #047857;
   --color-success-light: #d1fae5;
   --color-success-strong: #065f46;
+  --color-success-extra: #a7f3d0;
+  --color-success-extra-text: #064e3b;
   --color-warning: #d97706;
   --color-warning-light: #fef3c7;
   --color-danger: #dc2626;
   --color-danger-light: #fee2e2;
 
-  /* Neutrals */
-  --color-bg: #f9fafb;
-  --color-surface: #ffffff;
-  --color-border: #e5e7eb;
-  --color-border-dark: #d1d5db;
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-light: #9ca3af;
+  /* Neutrals — warm-tinted, not cold gray */
+  --color-bg: #f7f6f4;
+  --color-surface: #fefefe;
+  --color-border: #e4e2df;
+  --color-border-dark: #ccc9c4;
+  --color-text: #1a1917;
+  --color-text-secondary: #6b6860;
+  --color-text-light: #9c9890;
+
+  /* Footer */
+  --color-footer-bg: #1a1917;
+  --color-footer-text: #d1d5db;
+  --color-footer-link: #a5b4fc;
+  --color-footer-link-hover: #c7d2fe;
+  --color-footer-border: #374151;
+  --color-footer-muted: #9ca3af;
 
   /* Spacing */
   --space-xs: 0.25rem;
@@ -567,7 +577,7 @@ strong { font-weight: 600; }
 #input-metro:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 .search-list {
@@ -639,7 +649,7 @@ strong { font-weight: 600; }
 }
 
 .dimension-hint-toggle:hover {
-  color: var(--color-primary-dark, #1445b0);
+  color: var(--color-primary-dark, #4338ca);
 }
 
 .dimension-hint-toggle[aria-expanded="true"] {
@@ -686,7 +696,7 @@ strong { font-weight: 600; }
 .input-group input[type="number"]:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.15);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15);
 }
 
 /* Indicators */
@@ -724,9 +734,9 @@ strong { font-weight: 600; }
 }
 
 .indicator-success-extra {
-  background: #a7f3d0;
-  color: #064e3b;
-  border-left: 4px solid #064e3b;
+  background: var(--color-success-extra);
+  color: var(--color-success-extra-text);
+  border-left: 4px solid var(--color-success-extra-text);
 }
 
 /* Context cards */
@@ -1187,8 +1197,8 @@ strong { font-weight: 600; }
 
 /* ---- Footer ---- */
 #footer {
-  background: var(--color-text);
-  color: #d1d5db;
+  background: var(--color-footer-bg);
+  color: var(--color-footer-text);
   padding: var(--space-2xl) 0;
 }
 
@@ -1198,19 +1208,19 @@ strong { font-weight: 600; }
 }
 
 #footer a {
-  color: #93c5fd;
+  color: var(--color-footer-link);
 }
 
 #footer a:hover {
-  color: #bfdbfe;
+  color: var(--color-footer-link-hover);
 }
 
 .copyright {
   margin-top: var(--space-xl);
   padding-top: var(--space-lg);
-  border-top: 1px solid #374151;
+  border-top: 1px solid var(--color-footer-border);
   font-size: var(--text-sm);
-  color: #9ca3af;
+  color: var(--color-footer-muted);
 }
 
 /* ---- Responsive ---- */
@@ -1244,5 +1254,56 @@ strong { font-weight: 600; }
 
   .neighbor-stats {
     gap: var(--space-sm) var(--space-xl);
+  }
+}
+
+/* ---- Dark Mode ---- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Primary — indigo-400/500 for legibility on dark */
+    --color-primary: #818cf8;
+    --color-primary-dark: #6366f1;
+    --color-primary-light: #312e81;
+    --color-primary-bg: #1e1b4b;
+
+    /* Semantic — lighter tones for dark backgrounds */
+    --color-success: #34d399;
+    --color-success-light: #022c22;
+    --color-success-strong: #6ee7b7;
+    --color-success-extra: #064e3b;
+    --color-success-extra-text: #a7f3d0;
+    --color-warning: #fbbf24;
+    --color-warning-light: #292524;
+    --color-danger: #f87171;
+    --color-danger-light: #2d0a0a;
+
+    /* Neutrals — dark slate, warm text */
+    --color-bg: #0f172a;
+    --color-surface: #1e293b;
+    --color-border: #334155;
+    --color-border-dark: #475569;
+    --color-text: #f1f0ee;
+    --color-text-secondary: #94a3b8;
+    --color-text-light: #64748b;
+
+    /* Shadows — deeper on dark */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.5);
+    --shadow-lg: 0 10px 15px rgba(0,0,0,0.6);
+  }
+
+  /* Focus shadow uses indigo tint on dark */
+  #search-input:focus,
+  #input-metro:focus {
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+  }
+
+  .input-group input[type="number"]:focus {
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+  }
+
+  /* Footer stays dark in dark mode — keep existing tokens */
+  #footer {
+    border-top: 1px solid var(--color-border);
   }
 }
