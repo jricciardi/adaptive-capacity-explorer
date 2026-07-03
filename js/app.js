@@ -1168,7 +1168,7 @@
             ctx.fillStyle = themeColors().text;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.fillText(Math.round(value) + 'th', x + 6, y);
+            ctx.fillText(ordinal(value), x + 6, y);
             ctx.restore();
           });
         });
