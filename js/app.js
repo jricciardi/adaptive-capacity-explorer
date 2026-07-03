@@ -24,10 +24,10 @@
     // C3: 5 financial runway bands
     runway: {
       bands: [
-        { max: 3,  cls: 'indicator-danger',         label: 'That\u2019s a tight window. In practical terms, building even a few more months changes how many things you can say no to.' },
+        { max: 3,  cls: 'indicator-danger',         label: 'That\u2019s a tight window. In practical terms, adding even a few more months of buffer changes how many things you can say no to.' },
         { max: 6,  cls: 'indicator-warning',         label: 'A real buffer, but not a long one. Enough to be somewhat selective, not enough to be patient.' },
-        { max: 12, cls: 'indicator-success',         label: 'Solid ground. The research says this is where the math starts working in your favor. You can afford to search for fit rather than searching for survival.' },
-        { max: 18, cls: 'indicator-success-strong',  label: 'You\u2019ve bought yourself real freedom. At this level, you can afford to wait for something genuinely right. The data says people who can wait, land better.' },
+        { max: 12, cls: 'indicator-success',         label: 'Solid ground. This is roughly where a search stops being about survival and starts being about fit \u2014 you can afford to hold out for a role that actually uses your strengths.' },
+        { max: 18, cls: 'indicator-success-strong',  label: 'You\u2019ve bought yourself real freedom. At this level you can afford to wait for something genuinely right, and patience tends to pay off in match quality.' },
         { max: Infinity, cls: 'indicator-success-extra', label: 'That\u2019s serious runway. You\u2019re in a position where a transition is a strategic choice, not an emergency response.' }
       ]
     },
@@ -35,10 +35,10 @@
     // C4: Layperson-friendly age band language
     age: {
       bands: [
-        { max: 25,  label: 'You\u2019re early. Everything you build now \u2014skills, savings, network\u2014 compounds for decades.' },
+        { max: 25,  label: 'You\u2019re early. Everything you build now \u2014 skills, savings, network \u2014 compounds for decades.' },
         { max: 35,  label: 'Prime building years. The skills and savings you stack now are the adaptive capacity you\u2019ll draw on later.' },
         { max: 45,  label: 'You\u2019ve got a track record and you\u2019ve got time. This is the window where deliberate skill-building has the highest payoff relative to effort.' },
-        { max: 55,  label: 'Your experience is genuinely valuable, the question is how to deploy it. Adjacent moves that leverage what you know tend to land better than clean-sheet pivots from here.' },
+        { max: 55,  label: 'Your experience is genuinely valuable \u2014 the question is how to deploy it. Adjacent moves that leverage what you know tend to land better than clean-sheet pivots from here.' },
         { max: Infinity, label: 'The research doesn\u2019t sugarcoat this: reemployment gets harder. But preparation changes the odds significantly, and the factors you can control (savings, skills, network) matter more now than at any other point in your career.' }
       ]
     },
@@ -57,18 +57,12 @@
 
     zCap: 2.0,   // winsorization cap for user-input Z-scores
 
-    componentColors: {
-      high: '#047857',   // green ≥ 60th
-      mid:  '#d97706',   // amber ≥ 40th
-      low:  '#dc2626'    // red < 40th
-    },
-
     // C1: Descriptive tier thresholds
     scoreTiers: [
       { min: 75, label: 'Strong Position',   cls: 'tier-strong' },
       { min: 50, label: 'Solid Foundation',   cls: 'tier-above' },
       { min: 25, label: 'Room to Build',      cls: 'tier-moderate' },
-      { min: 0,  label: 'Early Stages',       cls: 'tier-below' }
+      { min: 0,  label: 'Headwinds',          cls: 'tier-below' }
     ]
   };
 
@@ -78,12 +72,14 @@
   // Scatter plot configuration — vulnerability tiers match Brookings visualization
   const SCATTER_CONFIG = {
     tiers: [
-      { name: 'Lowest vulnerability (<0.1)',  max: 0.1, bg: 'rgba(189, 210, 245, 0.55)', border: 'rgba(160, 190, 235, 0.8)' },
-      { name: 'Low vulnerability (0.1 – 0.3)', max: 0.3, bg: 'rgba(75, 130, 210, 0.45)',  border: 'rgba(60, 115, 200, 0.75)' },
-      { name: 'High vulnerability (0.3 – 0.6)', max: 0.6, bg: 'rgba(215, 90, 90, 0.5)',    border: 'rgba(200, 70, 70, 0.8)' },
-      { name: 'Highest vulnerability (>0.6)',   max: 1.0, bg: 'rgba(130, 25, 25, 0.6)',    border: 'rgba(110, 20, 20, 0.85)' }
+      // Lightest tier opacity/border raised so the safest quarter of the labor
+      // market stays visible against the warm-white surface (was ~1.2:1).
+      { name: 'Lowest vulnerability (<0.1)',  max: 0.1, bg: 'rgba(147, 180, 235, 0.7)',  border: 'rgba(96, 140, 210, 0.9)' },
+      { name: 'Low vulnerability (0.1 – 0.3)', max: 0.3, bg: 'rgba(75, 130, 210, 0.5)',   border: 'rgba(60, 115, 200, 0.8)' },
+      { name: 'High vulnerability (0.3 – 0.6)', max: 0.6, bg: 'rgba(215, 90, 90, 0.55)',   border: 'rgba(200, 70, 70, 0.85)' },
+      { name: 'Highest vulnerability (>0.6)',   max: 1.0, bg: 'rgba(130, 25, 25, 0.65)',   border: 'rgba(110, 20, 20, 0.9)' }
     ],
-    highlight: { bg: 'rgba(251, 191, 36, 0.9)', border: '#f59e0b' },
+    highlight: { bg: 'rgba(251, 191, 36, 0.95)', border: '#b45309' },
     medianX: 0.323,
     medianY: 0.7035,
     labeledOccupations: [
@@ -99,7 +95,23 @@
       '41-2031',  // Retail salespersons
       '35-3023',  // Fast food and counter workers
       '53-3032'   // Heavy and tractor-trailer truck drivers
-    ]
+    ],
+    // Curated short labels for the plotted set — avoids mid-word truncation
+    // like "Heavy and tractor-trail…" / "Secretaries and adminis…".
+    labelNames: {
+      '43-4051': 'Customer service reps',
+      '15-1252': 'Software developers',
+      '41-2011': 'Cashiers',
+      '43-6014': 'Secretaries & admins',
+      '43-9061': 'Office clerks',
+      '11-2021': 'Marketing managers',
+      '23-1011': 'Lawyers',
+      '29-1021': 'Dentists',
+      '29-1141': 'Registered nurses',
+      '41-2031': 'Retail salespersons',
+      '35-3023': 'Fast food & counter',
+      '53-3032': 'Truck drivers'
+    }
   };
 
   /* --------------------------------------------------------
@@ -139,7 +151,8 @@
     // Chart.js instances
     charts: {
       scatter: null,
-      components: null
+      components: null,
+      lastComponentResults: null
     },
 
     // What-If exploration
@@ -316,6 +329,42 @@
       if (pct >= CONFIG.scoreTiers[i].min) return CONFIG.scoreTiers[i];
     }
     return CONFIG.scoreTiers[CONFIG.scoreTiers.length - 1];
+  }
+
+  function prefersReducedMotion() {
+    return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  }
+
+  // Respect reduced-motion for programmatic scrolling (CSS scroll-behavior
+  // can't override an explicit behavior:'smooth').
+  function smoothScroll(el, opts) {
+    if (!el) return;
+    opts = opts || {};
+    opts.behavior = prefersReducedMotion() ? 'auto' : 'smooth';
+    el.scrollIntoView(opts);
+  }
+
+  // Defer to after layout settles — prevents Chart.js measuring a canvas
+  // whose container was just unhidden (the "collapsed to origin" first paint).
+  function deferPaint(fn) {
+    requestAnimationFrame(function () { requestAnimationFrame(fn); });
+  }
+
+  // Resolve the live theme tokens so canvas drawing matches the CSS in both
+  // light and dark mode (Chart.js draws raster pixels; it can't read CSS vars).
+  function themeColors() {
+    var cs = getComputedStyle(document.documentElement);
+    var get = function (name, fallback) {
+      var v = cs.getPropertyValue(name);
+      return v && v.trim() ? v.trim() : fallback;
+    };
+    return {
+      text:          get('--color-text', '#1a1917'),
+      textSecondary: get('--color-text-secondary', '#605d55'),
+      border:        get('--color-border', '#e4e2df'),
+      surface:       get('--color-surface', '#fefefe'),
+      primary:       get('--color-primary', '#4f46e5')
+    };
   }
 
   /* --------------------------------------------------------
@@ -617,12 +666,13 @@
         } else {
           display = escapeHtml(title);
         }
-        html += '<li class="search-item" role="option" data-soc="' + item.soc + '" data-index="' + i + '">' + display + '</li>';
+        html += '<li class="search-item" role="option" id="search-opt-' + i + '" aria-selected="false" data-soc="' + item.soc + '" data-index="' + i + '">' + display + '</li>';
       });
 
       DOM.searchResults.innerHTML = html;
       DOM.searchResults.hidden = false;
       DOM.searchInput.setAttribute('aria-expanded', 'true');
+      DOM.searchInput.removeAttribute('aria-activedescendant');
       this.highlightIndex = -1;
 
       DOM.searchResults.querySelectorAll('.search-item').forEach(function (li) {
@@ -644,6 +694,7 @@
     hideResults() {
       DOM.searchResults.hidden = true;
       DOM.searchInput.setAttribute('aria-expanded', 'false');
+      DOM.searchInput.removeAttribute('aria-activedescendant');
       this.highlightIndex = -1;
     },
 
@@ -667,14 +718,24 @@
         }
       } else if (e.key === 'Escape') {
         this.hideResults();
+      } else if (e.key === 'Tab') {
+        this.hideResults();
       }
     },
 
     _updateHighlight(items) {
-      items.forEach(function (li) { li.style.background = ''; });
-      if (this.highlightIndex >= 0 && items[this.highlightIndex]) {
-        items[this.highlightIndex].style.background = 'var(--color-primary-light)';
-        items[this.highlightIndex].scrollIntoView({ block: 'nearest' });
+      var active = this.highlightIndex >= 0 ? items[this.highlightIndex] : null;
+      items.forEach(function (li) {
+        li.style.background = '';
+        li.setAttribute('aria-selected', 'false');
+      });
+      if (active) {
+        active.style.background = 'var(--color-primary-light)';
+        active.setAttribute('aria-selected', 'true');
+        DOM.searchInput.setAttribute('aria-activedescendant', active.id);
+        active.scrollIntoView({ block: 'nearest' });
+      } else {
+        DOM.searchInput.removeAttribute('aria-activedescendant');
       }
     }
   };
@@ -741,12 +802,13 @@
         } else {
           display = escapeHtml(name);
         }
-        html += '<li class="search-item" role="option" data-code="' + item.code + '" data-index="' + i + '">' + display + '</li>';
+        html += '<li class="search-item" role="option" id="metro-opt-' + i + '" aria-selected="false" data-code="' + item.code + '" data-index="' + i + '">' + display + '</li>';
       });
 
       DOM.metroListbox.innerHTML = html;
       DOM.metroListbox.hidden = false;
       DOM.inputMetro.setAttribute('aria-expanded', 'true');
+      DOM.inputMetro.removeAttribute('aria-activedescendant');
       this.highlightIndex = -1;
 
       DOM.metroListbox.querySelectorAll('.search-item').forEach(function (li) {
@@ -798,6 +860,7 @@
     hideResults() {
       DOM.metroListbox.hidden = true;
       DOM.inputMetro.setAttribute('aria-expanded', 'false');
+      DOM.inputMetro.removeAttribute('aria-activedescendant');
       this.highlightIndex = -1;
     },
 
@@ -820,14 +883,24 @@
         }
       } else if (e.key === 'Escape') {
         this.hideResults();
+      } else if (e.key === 'Tab') {
+        this.hideResults();
       }
     },
 
     _updateHighlight(items) {
-      items.forEach(function (li) { li.style.background = ''; });
-      if (this.highlightIndex >= 0 && items[this.highlightIndex]) {
-        items[this.highlightIndex].style.background = 'var(--color-primary-light)';
-        items[this.highlightIndex].scrollIntoView({ block: 'nearest' });
+      var active = this.highlightIndex >= 0 ? items[this.highlightIndex] : null;
+      items.forEach(function (li) {
+        li.style.background = '';
+        li.setAttribute('aria-selected', 'false');
+      });
+      if (active) {
+        active.style.background = 'var(--color-primary-light)';
+        active.setAttribute('aria-selected', 'true');
+        DOM.inputMetro.setAttribute('aria-activedescendant', active.id);
+        active.scrollIntoView({ block: 'nearest' });
+      } else {
+        DOM.inputMetro.removeAttribute('aria-activedescendant');
       }
     }
   };
@@ -895,6 +968,29 @@
      CHARTS
      -------------------------------------------------------- */
   const Charts = {
+    // Set Chart.js globals from the resolved theme + reduced-motion preference.
+    applyTheme() {
+      if (typeof Chart === 'undefined') return;
+      var t = themeColors();
+      Chart.defaults.color = t.textSecondary;
+      Chart.defaults.borderColor = t.border;
+      Chart.defaults.font.family = "system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+      Chart.defaults.animation = prefersReducedMotion() ? false : { duration: 500 };
+    },
+
+    // Rebuild existing charts (e.g. after an OS light/dark switch).
+    rerender() {
+      if (state.charts.scatter) {
+        state.charts.scatter.destroy();
+        state.charts.scatter = null;
+        this.createScatter();
+        if (state.selectedOccupation) this.highlightOccupation(state.selectedOccupation);
+      }
+      if (state.charts.components && state.charts.lastComponentResults) {
+        this.createComponentBars(state.charts.lastComponentResults);
+      }
+    },
+
     createScatter() {
       if (!DOM.chartScatter) return;
 
@@ -1037,10 +1133,16 @@
 
       datasets.push({
         label: 'Your occupation',
+        // order:-1 draws this dataset on top (Chart.js draws highest order
+        // first/behind), so the user's marker is never occluded in a dense area.
+        order: -1,
         data: [{
           x: occ.ai_exposure,
           y: occ.composite_score / 100,
-          r: 10
+          r: 11,
+          soc: soc,
+          title: occ.title,
+          isYou: true
         }],
         backgroundColor: SCATTER_CONFIG.highlight.bg,
         borderColor: SCATTER_CONFIG.highlight.border,
@@ -1062,11 +1164,11 @@
             var x = bar.x;
             var y = bar.y;
             ctx.save();
-            ctx.font = '600 12px system-ui, sans-serif';
-            ctx.fillStyle = '#374151';
+            ctx.font = '700 12px system-ui, sans-serif';
+            ctx.fillStyle = themeColors().text;
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.fillText(Math.round(value), x + 6, y);
+            ctx.fillText(Math.round(value) + 'th', x + 6, y);
             ctx.restore();
           });
         });
@@ -1078,6 +1180,7 @@
       id: 'medianLines',
       beforeDatasetsDraw: function (chart) {
         var ctx = chart.ctx;
+        var t = themeColors();
         var xScale = chart.scales.x;
         var yScale = chart.scales.y;
         var xPixel = xScale.getPixelForValue(SCATTER_CONFIG.medianX);
@@ -1085,7 +1188,8 @@
         var area = chart.chartArea;
 
         ctx.save();
-        ctx.strokeStyle = '#7b9cc7';
+        ctx.strokeStyle = t.textSecondary;
+        ctx.globalAlpha = 0.55;
         ctx.lineWidth = 1;
         ctx.setLineDash([6, 4]);
 
@@ -1102,18 +1206,19 @@
         ctx.stroke();
 
         ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
 
-        // "Median" label on x-axis
+        // Labels placed INSIDE the plot along each line — clear of the axis
+        // ticks (x) and the canvas edge (y).
         ctx.font = '11px system-ui, sans-serif';
-        ctx.fillStyle = '#6b7280';
-        ctx.textAlign = 'center';
+        ctx.fillStyle = t.textSecondary;
+        ctx.textAlign = 'left';
         ctx.textBaseline = 'top';
-        ctx.fillText('Median', xPixel, area.bottom + 4);
+        ctx.fillText('Median exposure', xPixel + 4, area.top + 2);
 
-        // "Median" label on y-axis
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('Median', area.right + 2, yPixel);
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('Median capacity', area.left + 4, yPixel - 3);
 
         ctx.restore();
       }
@@ -1125,6 +1230,8 @@
       id: 'occupationLabels',
       afterDatasetsDraw: function (chart) {
         var labeled = SCATTER_CONFIG.labeledOccupations;
+        var names = SCATTER_CONFIG.labelNames;
+        var t = themeColors();
         var ctx = chart.ctx;
         var area = chart.chartArea;
         var rightThreshold = area.left + (area.right - area.left) * 0.72;
@@ -1138,11 +1245,17 @@
         chart.data.datasets.forEach(function (dataset, di) {
           var meta = chart.getDatasetMeta(di);
           dataset.data.forEach(function (point, pi) {
-            if (!point.soc || labeled.indexOf(point.soc) === -1) return;
+            var isYou = point.isYou;
+            if (!isYou && (!point.soc || labeled.indexOf(point.soc) === -1)) return;
             var el = meta.data[pi];
             if (!el) return;
-            var title = point.title || '';
-            if (title.length > 25) title = title.substring(0, 23) + '\u2026';
+            var text;
+            if (isYou) {
+              text = 'You \u2014 ' + (names[point.soc] || point.title || 'your occupation');
+            } else {
+              text = names[point.soc] || point.title || '';
+              if (text.length > 22) text = text.substring(0, 20) + '\u2026';
+            }
             var radius = point.r || 4;
             var textX, align;
             if (el.x > rightThreshold) {
@@ -1152,12 +1265,22 @@
               align = 'left';
               textX = el.x + radius + 4;
             }
-            labels.push({ text: title, x: textX, y: el.y - 3, align: align });
+            labels.push({ text: text, x: textX, y: el.y - 3, align: align, isYou: isYou });
           });
         });
 
-        // Pass 1: white halo (stroke behind text)
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+        // Greedy vertical de-collision within each alignment column.
+        var lastY = { left: -Infinity, right: -Infinity };
+        labels.sort(function (a, b) { return a.y - b.y; });
+        labels.forEach(function (lbl) {
+          if (lbl.y < lastY[lbl.align] + 13) lbl.y = lastY[lbl.align] + 13;
+          lastY[lbl.align] = lbl.y;
+        });
+
+        // Pass 1: halo in the surface color (lifts text above the data layer in
+        // both light and dark mode \u2014 a white halo would glow on dark).
+        ctx.strokeStyle = t.surface;
+        ctx.globalAlpha = 0.9;
         ctx.lineWidth = 3;
         ctx.lineJoin = 'round';
         labels.forEach(function (lbl) {
@@ -1165,10 +1288,11 @@
           ctx.strokeText(lbl.text, lbl.x, lbl.y);
         });
 
-        // Pass 2: dark fill on top
-        ctx.fillStyle = '#1f2937';
+        // Pass 2: text \u2014 the "You" label in the amber accent, others in ink.
+        ctx.globalAlpha = 1;
         labels.forEach(function (lbl) {
           ctx.textAlign = lbl.align;
+          ctx.fillStyle = lbl.isYou ? '#b45309' : t.text;
           ctx.fillText(lbl.text, lbl.x, lbl.y);
         });
 
@@ -1182,28 +1306,40 @@
       var comps = results.components;
       var labels = [];
       var values = [];
-      var colors = [];
 
       var order = ['transferability', 'density', 'wealth', 'age'];
 
       order.forEach(function (key) {
         var c = comps[key];
         if (key === 'density' && !c.available) return;
-
         labels.push(c.label);
-        var pct = c.percentile;
-        values.push(pct);
-
-        if (pct >= 60) colors.push(CONFIG.componentColors.high);
-        else if (pct >= 40) colors.push(CONFIG.componentColors.mid);
-        else colors.push(CONFIG.componentColors.low);
+        values.push(c.percentile);
       });
+
+      // Store for re-theming on an OS light/dark switch.
+      state.charts.lastComponentResults = results;
+
+      // Screen-reader text alternative for the canvas (WCAG 1.1.1).
+      var tableEl = document.getElementById('components-table');
+      if (tableEl) {
+        var t = '<table><caption>Your adaptive-capacity components, as a percentile versus all U.S. occupations</caption>' +
+                '<thead><tr><th scope="col">Component</th><th scope="col">Percentile</th></tr></thead><tbody>';
+        labels.forEach(function (lbl, i) {
+          t += '<tr><td>' + escapeHtml(lbl) + '</td><td>' + ordinal(Math.round(values[i])) + ' percentile</td></tr>';
+        });
+        tableEl.innerHTML = t + '</tbody></table>';
+      }
 
       // Destroy old chart if exists
       if (state.charts.components) {
         state.charts.components.destroy();
         state.charts.components = null;
       }
+
+      // Single on-brand indigo hue — the strongest/weakest judgment is carried
+      // by the callout cards + the median reference line, not by red/green
+      // (which was color-as-sole-signal and read as an HR dashboard).
+      var barColor = themeColors().primary;
 
       var ctx = DOM.chartComponents.getContext('2d');
       state.charts.components = new Chart(ctx, {
@@ -1212,7 +1348,7 @@
           labels: labels,
           datasets: [{
             data: values,
-            backgroundColor: colors,
+            backgroundColor: barColor,
             borderRadius: 4,
             barPercentage: 0.6
           }]
@@ -1223,7 +1359,7 @@
           maintainAspectRatio: true,
           aspectRatio: 2,
           layout: {
-            padding: { right: 40 }  // Space for bar labels
+            padding: { right: 44 }  // Space for bar labels
           },
           plugins: {
             legend: { display: false },
@@ -1239,15 +1375,46 @@
             x: {
               min: 0,
               max: 100,
-              title: { display: true, text: 'Percentile' }
+              title: { display: true, text: 'Percentile vs. all U.S. occupations' }
             },
             y: {
               ticks: { font: { weight: '600' } }
             }
           }
         },
-        plugins: [Charts._barLabelPlugin]
+        plugins: [Charts._barLabelPlugin, Charts._medianRefPlugin]
       });
+    },
+
+    // Dashed reference line at the 50th percentile so each bar reads as
+    // above/below the median at a glance.
+    _medianRefPlugin: {
+      id: 'medianRef',
+      afterDatasetsDraw: function (chart) {
+        var xScale = chart.scales.x;
+        if (!xScale) return;
+        var x = xScale.getPixelForValue(50);
+        var area = chart.chartArea;
+        var t = themeColors();
+        var ctx = chart.ctx;
+        ctx.save();
+        ctx.strokeStyle = t.textSecondary;
+        ctx.globalAlpha = 0.6;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(x, area.top);
+        ctx.lineTo(x, area.bottom);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = t.textSecondary;
+        ctx.font = '10px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('median', x, area.top - 1);
+        ctx.restore();
+      }
     }
   };
 
@@ -1287,8 +1454,9 @@
     var weakest = available[available.length - 1];
 
     lines.push('');
-    lines.push('Strongest: ' + strongest.label + ' (' + ordinal(Math.round(strongest.percentile)) + ' percentile)');
-    lines.push('Weakest: ' + weakest.label + ' (' + ordinal(Math.round(weakest.percentile)) + ' percentile)');
+    var weakestHeading = weakest.key === 'age' ? 'Factor to plan around' : 'Area to address';
+    lines.push('Strongest dimension: ' + strongest.label + ' (' + ordinal(Math.round(strongest.percentile)) + ' percentile)');
+    lines.push(weakestHeading + ': ' + weakest.label + ' (' + ordinal(Math.round(weakest.percentile)) + ' percentile)');
 
     if (occ.ai_exposure != null) {
       var expPct = Math.round(occ.ai_exposure * 100);
@@ -1320,7 +1488,8 @@
     render(results) {
       this._renderHeadline(results);
       WhatIfPanel.init(results);
-      Charts.createComponentBars(results);
+      // Defer chart creation until the results section has laid out.
+      deferPaint(function () { Charts.createComponentBars(results); });
       this._renderCallouts(results);
       this._renderRoadmap(results);
       this._renderNeighbors(results);
@@ -1334,34 +1503,32 @@
 
       var levelText = {
         'Strong Position':  'You\u2019re in a strong position. If your work changes due to AI, you have real options for what comes next.',
-        'Solid Foundation': 'You\u2019ve got a solid foundation. With some deliberate effort, you could improve your options.',
-        'Room to Build':    'You\u2019re not starting from zero, there are real things working in your favor here. But there are also areas where attention now could pay off later.',
-        'Early Stages':     'This is a hard position to adapt from. There are strategies here for making the most of your position, but your starting options are probably limited.'
+        'Solid Foundation': 'You\u2019re above the median \u2014 most of the pieces are in place. The breakdown below shows which one or two moves would push you toward a genuinely strong position.',
+        'Room to Build':    'You\u2019re not starting from zero \u2014 there are real things working in your favor here. But there are also areas where attention now could pay off later.',
+        'Headwinds':        'This is a harder starting point, and the score is honest about that. But it measures your current position, not your ceiling \u2014 the roadmap below is ordered by the moves that shift your situation fastest.'
       };
 
       var html = '<div class="score-display">';
       html += '<div class="score-circle" style="--score: ' + pct + '">';
       html += '<span class="score-number">' + escapeHtml(tier.label) + '</span>';
-      html += '<span class="score-suffix">' + pct + ' of 100</span>';
+      html += '<span class="score-suffix">' + ordinal(pct) + ' percentile</span>';
       html += '</div>';
       html += '<div class="score-context">';
       html += '<h3>' + escapeHtml(occ.title) + '</h3>';
       html += '<p>' + (levelText[tier.label] || '') + '</p>';
 
-      // Comparison to occupation benchmark
+      // Comparison to occupation benchmark — lead with the benchmark, then show
+      // how the personal inputs (runway, age) moved it. Avoid subtracting
+      // percentiles as if they were points.
       if (occ.composite_score != null) {
         var occPct = Math.round(occ.composite_score);
         var diff = pct - occPct;
-        var comparison;
-        if (Math.abs(diff) <= 5) {
-          comparison = 'roughly in line with';
-        } else if (diff > 0) {
-          comparison = Math.abs(diff) + ' points above';
-        } else {
-          comparison = Math.abs(diff) + ' points below';
-        }
+        var relation;
+        if (Math.abs(diff) <= 5) relation = 'lands you right around it';
+        else if (diff > 0) relation = 'lifts you above it';
+        else relation = 'pulls you below it';
         html += '<p style="font-size: var(--text-sm); color: var(--color-text-secondary);">' +
-                'Your personal score (' + ordinal(pct) + ' percentile) is ' + comparison + ' the occupation-level benchmark (' + ordinal(occPct) + ' percentile), which accounts for skill transferability and geographic density only.</p>';
+                'Your occupation’s benchmark sits at the ' + ordinal(occPct) + ' percentile — but that only counts skill transferability and market density. Adding what you told us about your runway and age ' + relation + ', at the ' + ordinal(pct) + ' percentile.</p>';
       }
 
       // AI exposure note
@@ -1399,15 +1566,15 @@
       var strongText = {
         transferability: 'The transferable skills your work builds are useful in a lot of places, not just your current role. You\u2019re more likely to have a lot of options if things shift.',
         density:         'You\u2019re in a large labor market \u2014 lots of employers hiring for lots of roles. That means more chances to find a good match, not just any match.',
-        wealth:          'Your financial buffer gives you more time during change. That means you can wait for the right next thing rather than needing to grab for the first next thing. That difference matters a lot.',
+        wealth:          'Your financial buffer gives you more time during change. That means you can wait for the right next thing rather than grabbing for the first next thing.',
         age:             'Being young in the labor market means you\u2019ve got time on your side. Retraining, relocating, pivoting \u2014 all of these are easier when you\u2019re earlier in your career.'
       };
 
       var weakText = {
-        transferability: 'Your skills run deep, which is an asset in your current role, but specialization can limit options if your speciality is threatened by AI. If you needed to make a lateral move, you might benefit from more transferable skills in your toolkit.',
+        transferability: 'Your skills run deep — an asset in your current role. But specialization can narrow your options if your specialty is the part AI takes on. If you had to move laterally, a broader base of transferable skills would give you more places to land.',
         density:         'Your local market is thinner than average. Fewer employers, and fewer open roles at any given time. That doesn\u2019t mean you\u2019re stuck, but it means your search radius matters more. Remote-eligible roles and a willingness to relocate can change this number.',
         wealth:          'With less financial runway, the clock ticks louder during a search. That pressure can push people toward roles that are available rather than roles that are right. That mismatch can persist for years.',
-        age:             'The research is honest about this: career transitions get harder with age. Not impossible. The most efficient path is building from what you already know rather than starting fresh in a new field. Lean into age advantages, like your network and your perspective.'
+        age:             'Transitions do get harder with age — the data is clear on that. What it also shows: the best returns come from adjacent moves, where your judgment, reputation, and network still count. Extension beats reinvention from here.'
       };
 
       var html = '<div class="callouts-row">';
@@ -1448,7 +1615,7 @@
         },
         density: {
           title: 'Consider location strategy',
-          text: 'A denser labor market means more shots on goal. That could mean physically relocating, or it could mean making yourself eligible for remote roles, which effectively puts you in every dense market at once.'
+          text: 'A denser labor market means more doors to knock on at once. That could mean physically relocating, or it could mean making yourself eligible for remote roles, which effectively puts you in every dense market at once.'
         },
         wealth: {
           title: 'Strengthen financial buffer',
@@ -1456,7 +1623,7 @@
         },
         age: {
           title: 'Plan around your career timeline',
-          text: 'You don\u2019t need to reinvent yourself, you need to extend yourself. The moves with the best return from here are the ones where 80% of what you already know still applies, and the 20% that\u2019s new opens a door that didn\u2019t exist before.'
+          text: 'You don\u2019t need to reinvent yourself \u2014 you need to extend yourself. The moves with the best return from here are the ones where 80% of what you already know still applies, and the 20% that\u2019s new opens a door that didn\u2019t exist before.'
         }
       };
 
@@ -1489,12 +1656,15 @@
           ? Math.round(neighborOcc.ai_exposure * 100)
           : null;
 
-        // Color-code AI exposure
-        var aiCls = '';
+        // AI exposure: label the level in words (not color alone), and reserve
+        // the danger ink for genuinely high exposure so the list doesn't read
+        // as a wall of red.
+        var aiLabel = '';
+        var aiStyle = '';
         if (aiExp !== null) {
-          if (aiExp >= 70) aiCls = ' style="color: var(--color-danger);"';
-          else if (aiExp >= 40) aiCls = ' style="color: var(--color-warning);"';
-          else aiCls = ' style="color: var(--color-success);"';
+          var level = aiExp >= 70 ? 'high' : aiExp >= 40 ? 'moderate' : 'lower';
+          aiLabel = 'AI exposure: ' + aiExp + '% (' + level + ')';
+          if (aiExp >= 70) aiStyle = ' style="color: var(--color-danger-text); font-weight: 600;"';
         }
 
         html += '<div class="neighbor-card">';
@@ -1503,7 +1673,7 @@
         html += '<span>Similarity: ' + (n.similarity * 100).toFixed(0) + '%</span>';
         html += '<span>Growth: ' + formatGrowth(n.growth_rate) + '</span>';
         if (aiExp !== null) {
-          html += '<span' + aiCls + '>AI exposure: ' + aiExp + '%</span>';
+          html += '<span' + aiStyle + '>' + aiLabel + '</span>';
         }
         html += '<span>Employment: ' + formatNumber(Math.round(n.employment_2024 * 1000)) + '</span>';
         html += '</div>';
@@ -1812,16 +1982,21 @@
       // Hero buttons
       DOM.btnStart.addEventListener('click', function () {
         DOM.assessment.hidden = false;
-        DOM.assessment.scrollIntoView({ behavior: 'smooth' });
+        smoothScroll(DOM.assessment);
+        // Move focus to the first step so keyboard/SR users land in the flow.
+        var firstHeading = DOM.stepOccupation.querySelector('h3');
+        if (firstHeading) { firstHeading.setAttribute('tabindex', '-1'); firstHeading.focus({ preventScroll: true }); }
       });
 
       DOM.btnLearn.addEventListener('click', function () {
         var isHidden = DOM.explainer.hidden;
         DOM.explainer.hidden = !isHidden;
         if (!isHidden) return;
-        DOM.explainer.scrollIntoView({ behavior: 'smooth' });
+        smoothScroll(DOM.explainer);
+        // Create the chart only after the section is laid out (avoids the
+        // zero-size first-paint collapse).
         if (!state.charts.scatter) {
-          Charts.createScatter();
+          deferPaint(function () { Charts.createScatter(); });
         }
       });
 
@@ -1961,12 +2136,15 @@
         if (isNaN(val)) {
           state.age = null;
           DOM.ageContext.hidden = true;
+          DOM.inputAge.removeAttribute('aria-invalid');
         } else if (val < 16 || val > 85) {
           state.age = null;
-          DOM.ageContext.innerHTML = '<p style="color: var(--color-danger); font-weight: 600;">Please enter an age between 16 and 85</p>';
+          DOM.ageContext.innerHTML = '<p style="color: var(--color-danger-text); font-weight: 600;">Please enter an age between 16 and 85</p>';
           DOM.ageContext.hidden = false;
+          DOM.inputAge.setAttribute('aria-invalid', 'true');
         } else {
           state.age = val;
+          DOM.inputAge.removeAttribute('aria-invalid');
           UI.showAgeContext(val);
         }
         UI.validateStep();
@@ -2062,7 +2240,7 @@
 
       // Fix 3: Scroll context card into view
       setTimeout(function () {
-        DOM.occContext.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        smoothScroll(DOM.occContext, { block: 'nearest' });
       }, 50);
 
       // Highlight on scatter chart if visible
@@ -2121,6 +2299,7 @@
       // Update ARIA
       var progressBar = DOM.progressFill.parentElement;
       progressBar.setAttribute('aria-valuenow', step);
+      progressBar.setAttribute('aria-valuetext', 'Step ' + step + ' of 4');
 
       // Show/hide nav buttons
       DOM.btnPrev.hidden = step === 1;
@@ -2134,8 +2313,12 @@
 
       this.validateStep();
 
-      // Scroll to top of assessment
-      DOM.assessment.scrollIntoView({ behavior: 'smooth' });
+      // Scroll to top of assessment and move focus to the new step heading so
+      // keyboard/SR users aren't stranded on a now-hidden control.
+      smoothScroll(DOM.assessment);
+      var steps = [DOM.stepOccupation, DOM.stepFinancial, DOM.stepLocation, DOM.stepAge];
+      var heading = steps[step - 1] && steps[step - 1].querySelector('h3');
+      if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
     },
 
     showResults() {
@@ -2144,9 +2327,13 @@
 
       DOM.assessment.hidden = true;
       DOM.results.hidden = false;
-      DOM.results.scrollIntoView({ behavior: 'smooth' });
+      smoothScroll(DOM.results);
 
       ResultsRenderer.render(results);
+
+      // Announce + focus the results so it isn't a silent context change.
+      var title = document.getElementById('results-title');
+      if (title) title.focus({ preventScroll: true });
     },
 
     restart() {
@@ -2202,7 +2389,7 @@
       }
 
       // Scroll to hero
-      DOM.hero.scrollIntoView({ behavior: 'smooth' });
+      smoothScroll(DOM.hero);
     }
   };
 
@@ -2214,6 +2401,17 @@
       try {
         await DataLoader.loadAll();
         DOM.overlay.hidden = true;
+
+        // Theme Chart.js to the CSS tokens + reduced-motion, and keep charts
+        // in sync if the OS color scheme changes mid-session.
+        if (typeof Chart !== 'undefined') {
+          Charts.applyTheme();
+          var mq = window.matchMedia('(prefers-color-scheme: dark)');
+          var onScheme = function () { Charts.applyTheme(); Charts.rerender(); };
+          if (mq.addEventListener) mq.addEventListener('change', onScheme);
+          else if (mq.addListener) mq.addListener(onScheme);
+        }
+
         UI.init();
       } catch (err) {
         console.error('Failed to load data:', err);

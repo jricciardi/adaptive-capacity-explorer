@@ -12,29 +12,31 @@
   <!-- Loading overlay -->
   <div id="loading-overlay" aria-live="polite">
     <div class="spinner"></div>
-    <p>Loading assessment data...</p>
+    <p>Loading assessment data&hellip;</p>
   </div>
 
   <!-- Section 1: Hero -->
   <header id="hero" class="section">
     <div class="container">
-      <h1>If AI dramatically changes your work tomorrow, how ready are you for what comes next?</h1>
-      <p class="hero-subtitle">AI is reshaping work. But not evenly, and not all at once. How exposed your job is depends on what you do. How well you can weather a change depends on who you are and what you've built.</p>
+      <h1>If your work changes faster than you expect, how ready are you for what comes next?</h1>
+      <p class="hero-subtitle">AI is reshaping work. But not evenly, and not all at once. How exposed your job is depends on what you do. How well you can weather a change depends on who you are and what you&rsquo;ve built.</p>
       <div class="hero-actions">
-        <button id="btn-start" class="btn btn-primary">Assess your adaptive capacity</button>
+        <button id="btn-start" class="btn btn-primary">Check your readiness &mdash; 4 steps, about 3 minutes</button>
         <button id="btn-learn" class="btn btn-secondary">What is adaptive capacity?</button>
       </div>
     </div>
   </header>
+
+  <main>
 
   <!-- Section 2: Concept Explainer -->
   <section id="explainer" class="section" hidden>
     <div class="container">
       <h2>Understanding Adaptive Capacity</h2>
       <div id="explainer-text">
-        <p>A 2026 study by Manning &amp; Aguirre examined how different occupations would fare in an AI-driven labor market transition. They found that exposure to AI varies dramatically by occupation &mdash; but that exposure alone doesn&rsquo;t determine outcomes.</p>
+        <p>In 2026, economists Alan Manning and Isabela Aguirre examined how different occupations would fare in an AI-driven labor market transition (NBER Working Paper 34705; summarized by Brookings). They found that exposure to AI varies dramatically by occupation &mdash; but that exposure alone doesn&rsquo;t determine outcomes.</p>
         <p>What matters is <strong>adaptive capacity</strong>: a combination of financial resources, transferable skills, geographic labor market conditions, and career stage. Workers with high adaptive capacity can navigate transitions more effectively, even when their occupation faces significant AI exposure.</p>
-        <p>Researchers at Brookings measured the concept of &ldquo;adaptive capacity&rdquo; across 752 occupations. This unofficial tool asks: what is your adaptive capacity, specifically?</p>
+        <p>Their study measured adaptive capacity across 752 occupations &mdash; the occupation was the unit of analysis. This independent tool asks a more personal question: what is <em>yours</em>?</p>
       </div>
       <div class="scatter-wrapper">
         <h3 class="scatter-title">Relationship between AI exposure and adaptive capacity across occupations</h3>
@@ -60,21 +62,20 @@
           </div>
         </div>
         <div class="chart-container">
-          <canvas id="chart-scatter"></canvas>
+          <canvas id="chart-scatter" role="img" aria-label="Scatter plot of 752 occupations comparing AI exposure on the horizontal axis against adaptive capacity on the vertical axis. Each bubble is an occupation; its size shows total employment and its color shows vulnerability, from blue (lower) to dark red (higher). Dashed lines mark the median of each axis. Occupations combining high AI exposure with low adaptive capacity fall toward the lower right."></canvas>
         </div>
         <p class="scatter-note">
           <strong>Source:</strong> Manning and Aguirre (2026),
           <a href="https://www.nber.org/papers/w34705" target="_blank" rel="noopener">NBER Working Paper 34705</a>.
           See also the
           <a href="https://www.brookings.edu/articles/the-ai-job-transition-challenge/" target="_blank" rel="noopener">Brookings summary</a>.<br>
-          <strong>Note:</strong> Vulnerability is defined as &radic;[(1 &minus; Adaptive Capacity) &times; AI Exposure]; darker shading indicates higher vulnerability or higher exposure combined with low adaptive capacity.
+          <strong>Note:</strong> Vulnerability is defined as &radic;[(1 &minus; Adaptive Capacity) &times; AI Exposure]; darker shading indicates higher vulnerability. The dashed lines mark the median of each axis &mdash; occupations toward the lower right (high exposure, low adaptive capacity) are the most exposed.
         </p>
       </div>
     </div>
   </section>
 
   <!-- Section 3: Self-Assessment Tool -->
-  <main>
     <section id="assessment" class="section" hidden>
       <div class="container">
         <h2>Your Assessment</h2>
@@ -85,7 +86,8 @@
         </div>
 
         <!-- Progress bar -->
-        <div class="progress" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4">
+        <div class="progress" role="progressbar" aria-label="Assessment progress"
+             aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-valuetext="Step 1 of 4">
           <div id="progress-fill" class="progress-fill" style="width: 25%"></div>
         </div>
         <p id="progress-label" class="progress-label">Step 1 of 4</p>
@@ -122,9 +124,10 @@
             <div class="search-wrapper">
               <label for="search-input" class="sr-only">Search for your occupation</label>
               <input id="search-input" type="text"
-                     placeholder="e.g., software developer, nurse, electrician..."
+                     placeholder="e.g., software developer, nurse, electrician&hellip;"
                      autocomplete="off" aria-describedby="search-hint"
-                     role="combobox" aria-expanded="false" aria-controls="search-results">
+                     role="combobox" aria-autocomplete="list"
+                     aria-expanded="false" aria-controls="search-results">
               <p id="search-hint" class="hint">Type at least 2 characters to search 752 occupations</p>
               <ul id="search-results" class="search-list" role="listbox" hidden></ul>
             </div>
@@ -149,10 +152,10 @@
           <div class="input-group">
             <label for="input-runway">Months of essential expenses covered</label>
             <input id="input-runway" type="number" min="0" max="120" step="1"
-                   placeholder="e.g., 6" inputmode="numeric">
+                   placeholder="e.g., 6" inputmode="numeric" aria-describedby="runway-indicator">
             <p class="hint">Include cash, checking, savings, and accessible investments. Don&rsquo;t count retirement accounts (401k/IRA), home equity, or vehicle value.</p>
           </div>
-          <div id="runway-indicator" class="indicator" hidden></div>
+          <div id="runway-indicator" class="indicator" hidden aria-live="polite"></div>
         </div>
 
         <!-- Step 3: Location -->
@@ -171,9 +174,9 @@
             <div class="search-wrapper">
               <label for="input-metro">Metro area</label>
               <input id="input-metro" type="text"
-                     placeholder="Start typing your city or metro area..."
-                     autocomplete="off" role="combobox" aria-expanded="false"
-                     aria-controls="metro-listbox">
+                     placeholder="Start typing your city or metro area&hellip;"
+                     autocomplete="off" role="combobox" aria-autocomplete="list"
+                     aria-expanded="false" aria-controls="metro-listbox">
               <ul id="metro-listbox" class="search-list" role="listbox" hidden></ul>
             </div>
           </div>
@@ -195,9 +198,9 @@
           <div class="input-group">
             <label for="input-age">Age</label>
             <input id="input-age" type="number" min="16" max="85" step="1"
-                   placeholder="e.g., 35" inputmode="numeric">
+                   placeholder="e.g., 35" inputmode="numeric" aria-describedby="age-context">
           </div>
-          <div id="age-context" class="context-card" hidden></div>
+          <div id="age-context" class="context-card" hidden aria-live="polite"></div>
         </div>
 
         <!-- Step navigation -->
@@ -210,12 +213,11 @@
         </div>
       </div>
     </section>
-  </main>
 
   <!-- Section 4: Results Dashboard -->
   <section id="results" class="section" hidden>
     <div class="container">
-      <h2>Your Adaptive Capacity Profile</h2>
+      <h2 id="results-title" tabindex="-1">Your Adaptive Capacity Profile</h2>
 
       <!-- Composite score headline -->
       <div id="results-headline" class="results-card"></div>
@@ -223,7 +225,7 @@
       <!-- What-If exploration panel -->
       <div id="results-whatif" class="results-card whatif-card" hidden>
         <button id="whatif-toggle" class="whatif-toggle" aria-expanded="false" aria-controls="whatif-body">
-          <span class="whatif-toggle-icon">&#x25B6;</span>
+          <span class="whatif-toggle-icon" aria-hidden="true">&#x25B6;</span>
           Explore: What if my situation were different?
         </button>
         <div id="whatif-body" class="whatif-body" hidden>
@@ -253,8 +255,9 @@
               <label for="whatif-metro">Metro area</label>
               <div class="whatif-metro-wrap">
                 <input id="whatif-metro" type="text" class="input" autocomplete="off"
-                       role="combobox" aria-expanded="false" aria-controls="whatif-metro-listbox"
-                       placeholder="Type to search metros...">
+                       role="combobox" aria-autocomplete="list" aria-expanded="false"
+                       aria-controls="whatif-metro-listbox"
+                       placeholder="Type to search metros&hellip;">
                 <ul id="whatif-metro-listbox" class="search-results whatif-metro-results" role="listbox" hidden></ul>
               </div>
               <span id="whatif-metro-pct" class="whatif-pct-label"></span>
@@ -269,8 +272,9 @@
       <div id="results-breakdown" class="results-card">
         <h3>Component Breakdown</h3>
         <div class="chart-container">
-          <canvas id="chart-components"></canvas>
+          <canvas id="chart-components" role="img" aria-label="Bar chart of your four adaptive-capacity components, each as a percentile versus all U.S. occupations."></canvas>
         </div>
+        <div id="components-table" class="sr-only"></div>
       </div>
 
       <!-- Strongest / Weakest -->
@@ -302,6 +306,8 @@
       </div>
     </div>
   </section>
+
+  </main>
 
   <!-- Section 5: Footer -->
   <footer id="footer" class="section">
