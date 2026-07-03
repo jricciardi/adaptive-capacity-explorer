@@ -344,6 +344,14 @@
     el.scrollIntoView(opts);
   }
 
+  // Move focus to a normally-unfocusable element (a heading) after a view
+  // change, without scrolling — so keyboard/SR users follow the flow.
+  function moveFocus(el) {
+    if (!el) return;
+    el.setAttribute('tabindex', '-1');
+    el.focus({ preventScroll: true });
+  }
+
   // Defer to after layout settles — prevents Chart.js measuring a canvas
   // whose container was just unhidden (the "collapsed to origin" first paint).
   function deferPaint(fn) {
@@ -687,6 +695,8 @@
       DOM.searchInput.value = title;
       DOM.searchResults.hidden = true;
       DOM.searchInput.setAttribute('aria-expanded', 'false');
+      DOM.searchInput.removeAttribute('aria-activedescendant');
+      this.highlightIndex = -1;
       UI.showOccupationContext();
       UI.validateStep();
     },
@@ -826,6 +836,8 @@
       DOM.inputMetro.value = cbsa.name;
       DOM.metroListbox.hidden = true;
       DOM.inputMetro.setAttribute('aria-expanded', 'false');
+      DOM.inputMetro.removeAttribute('aria-activedescendant');
+      this.highlightIndex = -1;
       this.showLocationContext();
       UI.validateStep();
     },
@@ -1157,21 +1169,19 @@
       id: 'barLabels',
       afterDatasetsDraw: function (chart) {
         var ctx = chart.ctx;
+        var ink = themeColors().text;
+        ctx.save();
+        ctx.font = '700 12px system-ui, sans-serif';
+        ctx.fillStyle = ink;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
         chart.data.datasets.forEach(function (dataset, datasetIndex) {
           var meta = chart.getDatasetMeta(datasetIndex);
           meta.data.forEach(function (bar, index) {
-            var value = dataset.data[index];
-            var x = bar.x;
-            var y = bar.y;
-            ctx.save();
-            ctx.font = '700 12px system-ui, sans-serif';
-            ctx.fillStyle = themeColors().text;
-            ctx.textAlign = 'left';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(ordinal(value), x + 6, y);
-            ctx.restore();
+            ctx.fillText(ordinal(dataset.data[index]), bar.x + 6, bar.y);
           });
         });
+        ctx.restore();
       }
     },
 
@@ -1984,8 +1994,7 @@
         DOM.assessment.hidden = false;
         smoothScroll(DOM.assessment);
         // Move focus to the first step so keyboard/SR users land in the flow.
-        var firstHeading = DOM.stepOccupation.querySelector('h3');
-        if (firstHeading) { firstHeading.setAttribute('tabindex', '-1'); firstHeading.focus({ preventScroll: true }); }
+        moveFocus(DOM.stepOccupation.querySelector('h3'));
       });
 
       DOM.btnLearn.addEventListener('click', function () {
@@ -2317,8 +2326,7 @@
       // keyboard/SR users aren't stranded on a now-hidden control.
       smoothScroll(DOM.assessment);
       var steps = [DOM.stepOccupation, DOM.stepFinancial, DOM.stepLocation, DOM.stepAge];
-      var heading = steps[step - 1] && steps[step - 1].querySelector('h3');
-      if (heading) { heading.setAttribute('tabindex', '-1'); heading.focus({ preventScroll: true }); }
+      moveFocus(steps[step - 1] && steps[step - 1].querySelector('h3'));
     },
 
     showResults() {
@@ -2332,8 +2340,7 @@
       ResultsRenderer.render(results);
 
       // Announce + focus the results so it isn't a silent context change.
-      var title = document.getElementById('results-title');
-      if (title) title.focus({ preventScroll: true });
+      moveFocus(document.getElementById('results-title'));
     },
 
     restart() {
